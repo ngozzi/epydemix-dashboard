@@ -37,7 +37,6 @@ facecolor="#0c1019"
 # ---------- SIDEBAR ----------
 st.sidebar.title("Configuration")
 with st.sidebar.form("sim_cfg"):
-#with st.sidebar:
     with st.expander("Simulation Parameters", expanded=True):
         model_type = st.selectbox("Model Type", ["SIR", "SEIR", "SIS"], index=1)
         n_v = st.number_input("Number of simulations", 1, 100, 10)
@@ -62,6 +61,11 @@ with st.sidebar.form("sim_cfg"):
         if model_type != "SIS":
             initial_immunity_percentage_v = st.number_input("Initial Immunity Percentage", 0.0, 100.0, 0.0, 1.0)
     
+    # Parameter overrides
+    with st.expander("Parameter Overrides", expanded=False):
+        # TODO: add parameter overrides
+        pass
+
     # Interventions
     st.markdown("### Interventions")
     
