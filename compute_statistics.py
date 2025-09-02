@@ -32,8 +32,8 @@ def compute_attack_rate(trj, population):
         attack_rows.append({
             "Age group": age,
             "Median (%)": np.median(ar),
-            "95% CI low (%)": np.round(np.percentile(ar, 2.5), 1),
-            "95% CI high (%)": np.round(np.percentile(ar, 97.5), 1)
+            "95% CI low (%)": np.percentile(ar, 2.5),
+            "95% CI high (%)": np.percentile(ar, 97.5)
         })
     return pd.DataFrame(attack_rows)
 
@@ -48,8 +48,8 @@ def compute_peak_size(trj, population):
         peak_rows.append({
             "Age group": age,
             "Median peak": np.median(peak_vals),
-            "95% CI low": int(np.percentile(peak_vals, 2.5)),
-            "95% CI high": int(np.percentile(peak_vals, 97.5))
+            "95% CI low": np.percentile(peak_vals, 2.5),
+            "95% CI high": np.percentile(peak_vals, 97.5)
         })
     return pd.DataFrame(peak_rows)
 

@@ -265,8 +265,8 @@ else:
             st.dataframe(
                 df_attack.style.format({
                     "Median (%)": "{:.1f}",
-                    "IQR low (%)": "{:.1f}",
-                    "IQR high (%)": "{:.1f}",
+                    "95% CI low (%)": "{:.1f}",
+                    "95% CI high (%)": "{:.1f}",
                 }),
                 use_container_width=True
             )
@@ -280,8 +280,8 @@ else:
             st.dataframe(
                 df_peak.style.format({
                     "Median peak": "{:,.0f}",
-                    "IQR low": "{:,.0f}",
-                    "IQR high": "{:,.0f}",
+                    "95% CI low": "{:,.0f}",
+                    "95% CI high": "{:,.0f}",
                 }),
                 use_container_width=True
             )
