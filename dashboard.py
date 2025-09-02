@@ -12,11 +12,18 @@ from compute_statistics import compute_attack_rate, compute_peak_size, compute_p
 
 # ---------- LAYOUT ----------
 st.sidebar.image("https://cdn.prod.website-files.com/67bde9057c9d78157874e100/67c1d1122127f0a9ce202197_epydemix-logo-p-500.png", use_container_width=True)
-st.sidebar.markdown(
+st.markdown(
     """
-    <div style='text-align: center; margin-top: 50px;'>
-        <img src="https://www.isi.it/wp-content/uploads/2023/11/isi-logo-white.svg" width="120">
-    </div>
+    <style>
+    .fixed-logo {
+        position: fixed;
+        bottom: 60px;   /* was 20px — push it up */
+        right: 20px;
+        width: 100px;
+        z-index: 100;
+    }
+    </style>
+    <img src="https://www.isi.it/wp-content/uploads/2023/11/isi-logo-white.svg" class="fixed-logo">
     """,
     unsafe_allow_html=True
 )
