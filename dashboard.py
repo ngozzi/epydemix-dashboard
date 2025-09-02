@@ -8,7 +8,7 @@ import numpy as np
 from datetime import datetime, timedelta
 from visualization import plot_compartments_traj, plot_contact_matrix, plot_contact_intensity, plot_population
 from utils import invalidate_results, load_locations
-from compute_statistics import compute_attack_rate, compute_peak_size, compute_peak_time
+from compute_statistics import compute_attack_rate, compute_peak_size, compute_peak_time, compute_endemic_state
 
 # ---------- LAYOUT ----------
 st.sidebar.image("https://cdn.prod.website-files.com/67bde9057c9d78157874e100/67c1d1122127f0a9ce202197_epydemix-logo-p-500.png", use_container_width=True)
@@ -258,43 +258,58 @@ else:
         plot_compartments_traj(ax, trj, compartment, age_group, show_median)
         st.pyplot(fig)
 
-        # -------- 1) Attack rate (%) --------
-        if any(k.startswith("Recovered_") for k in trj.keys()):
-            df_attack = compute_attack_rate(trj, population)
-            st.subheader("Attack rate (%)")
-            st.dataframe(
-                df_attack.style.format({
-                    "Median (%)": "{:.1f}",
-                    "95% CI low (%)": "{:.1f}",
-                    "95% CI high (%)": "{:.1f}",
-                }),
-                use_container_width=True
-            )
-        else:
-            st.info("Attack rate unavailable for this model (no **Recovered** compartment).")
+        if model_type != "SIS":
+            # -------- 1) Attack rate (%) --------
+            if any(k.startswith("Recovered_") for k in trj.keys()):
+                df_attack = compute_attack_rate(trj, population)
+                st.subheader("Attack rate (%)")
+                st.dataframe(
+                    df_attack.style.format({
+                        "Median (%)": "{:.1f}",
+                        "95% CI low (%)": "{:.1f}",
+                        "95% CI high (%)": "{:.1f}",
+                    }),
+                    use_container_width=True
+                )
+            else:
+                st.info("Attack rate unavailable for this model (no **Recovered** compartment).")
 
-        # -------- 2) Peak size (absolute) --------
-        if any(k.startswith("Infected_") for k in trj.keys()):
-            df_peak = compute_peak_size(trj, population)
-            st.subheader("Peak size (Infected, absolute)")
-            st.dataframe(
-                df_peak.style.format({
-                    "Median peak": "{:,.0f}",
-                    "95% CI low": "{:,.0f}",
-                    "95% CI high": "{:,.0f}",
-                }),
-                use_container_width=True
-            )
-        else:
-            st.info("Peak size unavailable (no **Infected** series found).")
+            # -------- 2) Peak size (absolute) --------
+            if any(k.startswith("Infected_") for k in trj.keys()):
+                df_peak = compute_peak_size(trj, population)
+                st.subheader("Peak size (Infected, absolute)")
+                st.dataframe(
+                    df_peak.style.format({
+                        "Median peak": "{:,.0f}",
+                        "95% CI low": "{:,.0f}",
+                        "95% CI high": "{:,.0f}",
+                    }),
+                    use_container_width=True
+                )
+            else:
+                st.info("Peak size unavailable (no **Infected** series found).")
 
-        # -------- 3) Peak time (day) --------
-        if any(k.startswith("Infected_") for k in trj.keys()):
-            df_peaktime = compute_peak_time(trj, population)
-            st.subheader("Peak time")
-            st.dataframe(df_peaktime, use_container_width=True)
+            # -------- 3) Peak time (day) --------
+            if any(k.startswith("Infected_") for k in trj.keys()):
+                df_peaktime = compute_peak_time(trj, population)
+                st.subheader("Peak time")
+                st.dataframe(df_peaktime, use_container_width=True)
+            else: 
+                st.info("Peak time unavailable (no **Infected** series found).")
+        
         else: 
-            st.info("Peak time unavailable (no **Infected** series found).")
+            # -------- 4) Endemic state (absolute) --------
+            if any(k.startswith("Infected_") for k in trj.keys()):
+                df_endemic = compute_endemic_state(trj, population)
+                st.subheader("Endemic state (Infected, absolute)")
+
+                st.dataframe(df_endemic.style.format({
+                        "Median endemic": "{:,.0f}",
+                        "95% CI low": "{:,.0f}",
+                        "95% CI high": "{:,.0f}",
+                    }), use_container_width=True)
+            else:
+                st.info("Endemic state unavailable (no **Infected** series found).")
 
     if st.session_state.active_tab == "Population":
         fig, ax = plt.subplots(dpi=300)

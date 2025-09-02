@@ -72,3 +72,19 @@ def compute_peak_time(trj, population):
             "95% CI high (day)": day_q3,
         })
     return pd.DataFrame(peaktime_rows)
+
+
+def compute_endemic_state(trj, population):
+    endemic_rows = []
+    for age in _age_list(population):
+        if not _col_exists(trj, "Infected", age):
+            continue
+        arr = _series(trj, "Infected", age)              # (Nsim, T)
+        endemic_vals = arr[:, -1]
+        endemic_rows.append({
+            "Age group": age,
+            "Median endemic": np.median(endemic_vals),
+            "95% CI low": np.percentile(endemic_vals, 2.5),
+            "95% CI high": np.percentile(endemic_vals, 97.5)
+        })
+    return pd.DataFrame(endemic_rows)
