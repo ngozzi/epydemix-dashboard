@@ -448,14 +448,14 @@ if trj is None:
                 <div>
                 <span class="pill">SIR / SEIR / SIS</span>
                 <span class="pill">Contact interventions</span>
-                <span class="pill">Time-window overrides</span>
-                <span class="pill">Median & per-run exports</span>
+                <span class="pill">Parameter overrides</span>
+                <span class="pill">CSV exports</span>
                 </div>
                 <br/>
                 <ul class="steps">
-                <li><strong>Set parameters</strong> in the sidebar (model, days, R₀, periods, initial conditions).</li>
-                <li><strong>Add interventions</strong> by layer (home/school/work/community) with start–end–reduction.</li>
-                <li><strong>Optionally override</strong> R₀ or infectious period between two days.</li>
+                <li><strong>Set parameters</strong> in the sidebar (model, epidemiological parameters, initial conditions).</li>
+                <li><strong>Add interventions</strong> by layer (home/school/work/community) with start/end contact reduction.</li>
+                <li><strong>Optionally override</strong> epidemiological parameters between two days.</li>
                 <li>Click <strong>Run Simulation</strong>, then explore tabs for plots & tables.</li>
                 </ul>
                 <p class="muted">
