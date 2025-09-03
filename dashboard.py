@@ -112,7 +112,7 @@ with st.sidebar.form("sim_cfg"):
             st.write("No interventions enabled.")
 
     # -------- Parameter Overrides --------
-    st.markdown("### 🦠 Parameter overrides")
+    st.markdown("### 🦠 Parameter Overrides")
 
     override_specs = [
         {"name": "R0", "disp": "$R_0$", "min": 0.0, "max": 20.0, "step": 0.1, "default": float(R0_v)},
@@ -289,6 +289,20 @@ if run_button:
                 start_date=start_date + timedelta(days=iv["start"]),
                 end_date=start_date + timedelta(days=iv["end"]),
                 reduction_factor=1.0 - iv["reduction"]
+            )
+
+        # Add parameter overrides
+        for param, ovr in parameter_overrides.items():
+            # Compute beta from R0 
+            if param == "R0":
+                value_ovr = ovr["param"] * mu_v / spectral_radius
+            else: 
+                value_ovr = ovr["param"]
+            m.override_parameter(
+                parameter_name=param,
+                start_date=start_date + timedelta(days=ovr["start_day"]),
+                end_date=start_date + timedelta(days=ovr["end_day"]),
+                value=value_ovr
             )
 
         # Run simulations and save results
