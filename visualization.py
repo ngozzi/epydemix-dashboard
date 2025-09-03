@@ -76,32 +76,48 @@ def plot_population(ax, population, show_percent=False, facecolor="#0c1019", lin
     ax.grid(axis="y", linestyle="dotted", alpha=0.5, linewidth=0.5, zorder=0)
 
 
-def plot_contact_intensity(ax, rhos, facecolor="#0c1019", linecolor="#50f0d8"):
-    """Plot the contact intensity"""
-    ax.set_facecolor(facecolor)
 
-    for layer, rho in rhos.items():
-        ax.plot(range(len(rho)), 
-                rho, 
-                color=linecolor if layer == "overall" else "grey", 
-                label=layer if layer == "overall" else None,
-                linewidth=2, 
-                alpha = 1.0 if layer == "overall" else 0.5)
-        
-    # annotate the name of the layers avoiding overlaps of the text
-    for layer, rho in rhos.items():
-        ax.text(len(rho) - 1, rho[-1], layer, ha="right", va="bottom", color="white", fontsize=6)
+def plot_population_altair(population, show_percent=False, facecolor="#0c1019", linecolor="#50f0d8"):
+    """Plot population distribution with Altair."""
+    df = pd.DataFrame({
+        "Age Group": population.Nk_names,
+        "Count": population.Nk
+    })
+    if show_percent:
+        df["Value"] = 100 * df["Count"] / df["Count"].sum()
+        ylabel = "Individuals (%)"
+    else:
+        df["Value"] = df["Count"]
+        ylabel = "Individuals (total)"
 
-    #ax.legend(facecolor=facecolor, labelcolor="white", frameon=False)
-    ax.set_xlabel("Days", color="white")
-    ax.set_ylabel("Contact Intensity (%)", color="white")
-    for s in ax.spines.values():
-        s.set_visible(False)
-    ax.tick_params(width=0, colors="white")
-    ax.grid(axis="y", linestyle="dotted", alpha=0.5, linewidth=0.5)
+    chart = (
+        alt.Chart(df)
+        .mark_bar(color=linecolor)
+        .encode(
+            x=alt.X("Age Group:N", axis=alt.Axis(title="Age Group", labelColor="white", titleColor="white")),
+            y=alt.Y("Value:Q", axis=alt.Axis(title=ylabel, labelColor="white", titleColor="white")),
+            tooltip=["Age Group", alt.Tooltip("Value", format=".1f")]
+        )
+        .properties(height=350, background=facecolor)
+    )
+
+    chart = chart.configure_axis(
+        grid=True,
+        gridColor="white",
+        gridOpacity=0.4,
+        gridDash=[2, 4],   # dotted horizontal grid
+        domain=False,      # no axis spines
+        tickColor="white",
+        tickOpacity=0.0    # hide tick marks
+    ).configure_view(
+        strokeWidth=0      # remove outer border
+    )
+
+    st.altair_chart(chart, use_container_width=True)
 
 
-def plot_contact_intensity_native(rhos: dict, facecolor="#0c1019"):
+
+def plot_contact_intensity(rhos: dict, facecolor="#0c1019"):
     """
     rhos: dict like {"overall": [...], "home":[...], "school":[...], "work":[...], "community":[...]}
     """

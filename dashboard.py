@@ -6,7 +6,7 @@ from epydemix.utils import compute_simulation_dates
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-from visualization import plot_compartments_traj, plot_contact_matrix, plot_contact_intensity, plot_population, plot_contact_intensity_native
+from visualization import plot_compartments_traj, plot_contact_matrix, plot_contact_intensity, plot_population, plot_population_altair
 from utils import invalidate_results, load_locations
 from compute_statistics import compute_attack_rate, compute_peak_size, compute_peak_time, compute_endemic_state
 
@@ -319,11 +319,12 @@ else:
                 st.info("Endemic state unavailable (no **Infected** series found).")
 
     if st.session_state.active_tab == "Population":
-        fig, ax = plt.subplots(dpi=300)
-        fig.set_facecolor(facecolor)
+        #fig, ax = plt.subplots(dpi=300)
+        #fig.set_facecolor(facecolor)
         show_percent = st.checkbox("Show percentage", value=False, key="p1_per")
-        plot_population(ax, population, show_percent)
-        st.pyplot(fig)
+        #plot_population(ax, population, show_percent)
+        #st.pyplot(fig)
+        plot_population_altair(population, show_percent)
 
     if st.session_state.active_tab == "Contacts":
         contact = st.selectbox("Contact Layer",  ["overall"] + LAYER_NAMES, index=0, key="p2_layer")
@@ -333,10 +334,6 @@ else:
         st.pyplot(fig)
 
     if st.session_state.active_tab == "Interventions":
-        #fig, ax = plt.subplots(dpi=600)
-        #fig.set_facecolor(facecolor)
-        #plot_contact_intensity(ax, rhos)
-        #st.pyplot(fig)
-        plot_contact_intensity_native(rhos)
+        plot_contact_intensity(rhos)
 
 
