@@ -56,18 +56,8 @@ def plot_compartments_traj_altair(
         )
         layers.append(median_line)
 
-    chart = alt.layer(*layers).configure_axis(
-        grid=True,
-        gridColor="white",
-        gridOpacity=0.4,
-        gridDash=[2, 4],   # dotted horizontal grid
-        domain=False,      # remove spines
-        tickColor="white",
-        tickOpacity=0.0,   # hide tick marks
-    ).configure_view(
-        strokeWidth=0      # remove outer border
-    ).configure(
-        background=facecolor  # <- set background at TOP LEVEL
+    chart = alt.layer(*layers).configure(
+        background=facecolor 
     )
 
     st.altair_chart(chart, use_container_width=True)
