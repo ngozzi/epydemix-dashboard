@@ -577,15 +577,18 @@ else:
 
     if st.session_state.active_tab == "Contacts":
         contact = st.selectbox("Contact Layer",  ["overall"] + LAYER_NAMES, index=0, key="p2_layer")
+        plot_contact_matrix(contact, population.contact_matrices, population.Nk_names)
+
         # Build the DataFrame backing the current visualization
         df_mat = contact_matrix_df(contact, population.contact_matrices, population.Nk_names)
-        c1, c2 = st.columns([3,1])
-        with c1:
-            st.subheader(f"Contacts per day in {contact}")
-        with c2:
-            st.download_button("⬇️ CSV", df_mat.to_csv(index=True), f"contact_matrix_{contact}.csv", "text/csv")
 
-        plot_contact_matrix(contact, population.contact_matrices, population.Nk_names)
+        # Offer CSV download
+        st.download_button(
+            label="⬇️ Download matrix as CSV",
+            data=df_mat.round(3).to_csv(index=True),      # keep row labels
+            file_name=f"{country_name}_contacts_{contact}.csv",
+            mime="text/csv",
+        )
 
     if st.session_state.active_tab == "Interventions":
         plot_contact_intensity(rhos)
