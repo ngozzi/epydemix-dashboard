@@ -75,55 +75,71 @@ with st.sidebar.form("sim_cfg"):
             initial_immunity_percentage_v = st.number_input("Initial Immunity Percentage", 0.0, 100.0, 0.0, 1.0)
 
     # Interventions
+    # Interventions
     st.markdown("### 🤝 Contact Interventions")
-    
-    # Hold all layer states in session_state so switching layer keeps values
+
+    # Initialize once
     for layer in LAYER_NAMES:
         st.session_state.setdefault(f"{layer}_en", False)
         st.session_state.setdefault(f"{layer}_start", 0)
-        st.session_state.setdefault(f"{layer}_end", simulation_days_v)
-        st.session_state.setdefault(f"{layer}_red", 0)
+        st.session_state.setdefault(f"{layer}_end", int(simulation_days_v))
+        st.session_state.setdefault(f"{layer}_red", 0)  # percent (int)
 
     for sel in LAYER_NAMES:
         with st.expander(f"Configure: {sel}", expanded=False):
-            st.session_state[f"{sel}_en"]  = st.checkbox(f"Enable intervention on {sel}", value=st.session_state[f"{sel}_en"])
+
+            # Let the widget manage state via key (no manual assignment)
+            st.checkbox(
+                f"Enable intervention on {sel}",
+                key=f"{sel}_en",
+                value=bool(st.session_state[f"{sel}_en"]),
+            )
+
+            # Read current state to compute safe defaults
+            cur_start = int(st.session_state[f"{sel}_start"])
+            cur_end   = int(st.session_state[f"{sel}_end"])
+
             c1, c2 = st.columns(2)
             with c1:
                 st.number_input(
                     "Start day",
-                    min_value=0, 
+                    min_value=0,
                     max_value=int(simulation_days_v),
-                    value=int(st.session_state[f"{sel}_start"]),
+                    value=cur_start,
                     step=1,
-                    key=f"{sel}_start"
+                    key=f"{sel}_start",
                 )
+
+            # Re-read start after potential change this render
+            new_start = int(st.session_state[f"{sel}_start"])
+            safe_end_default = max(new_start, cur_end)
+
             with c2:
                 st.number_input(
                     "End day",
-                    min_value=int(st.session_state[f"{sel}_start"]), 
+                    min_value=new_start,
                     max_value=int(simulation_days_v),
-                    value=int(st.session_state[f"{sel}_end"]),
+                    value=safe_end_default,
                     step=1,
-                    key=f"{sel}_end"
+                    key=f"{sel}_end",
                 )
 
+            # IMPORTANT: keep everything int for this slider
             st.slider(
                 "Reduction of contacts (%)",
-                min_value=float(0), max_value=float(100),
-                value=float(st.session_state[f"{sel}_red"]),
-                step=1,
+                min_value=0, max_value=100, step=1,
+                value=int(st.session_state[f"{sel}_red"]),
                 key=f"{sel}_red",
             )
-            #st.session_state[f"{sel}_red"] = st.slider("Reduction of contacts (%)", 0, 100, st.session_state[f"{sel}_red"], 1, key=f"{sel}_red")
 
-    # build dict from session_state
+    # Build dict
     interventions = {}
     for layer in LAYER_NAMES:
         if st.session_state[f"{layer}_en"]:
             interventions[layer] = {
                 "start": int(st.session_state[f"{layer}_start"]),
-                "end": int(st.session_state[f"{layer}_end"]),
-                "reduction": st.session_state[f"{layer}_red"] / 100.0,
+                "end":   int(st.session_state[f"{layer}_end"]),
+                "reduction": int(st.session_state[f"{layer}_red"]) / 100.0,  # fraction
             }
 
     with st.expander("Intervention summary", expanded=True):
@@ -132,6 +148,7 @@ with st.sidebar.form("sim_cfg"):
                 st.write(f"**{k}**: days {v['start']}–{v['end']}, reduction {int(v['reduction']*100)}%")
         else:
             st.write("No interventions enabled.")
+
 
     # -------- Parameter Overrides --------
     st.markdown("### 🦠 Parameter Overrides")
