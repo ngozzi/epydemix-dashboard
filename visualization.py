@@ -4,44 +4,53 @@ import seaborn as sns
 import altair as alt
 import streamlit as st
 
-def plot_compartments_traj_altair(trj, comp, age, show_median=True,
-                                  facecolor="#0c1019", linecolor="#50f0d8"):
+import pandas as pd
+import numpy as np
+import altair as alt
+import streamlit as st
+
+def plot_compartments_traj_altair(
+    trj, comp, age, show_median=True, facecolor="#0c1019", linecolor="#50f0d8"
+):
     key = f"{comp}_{age}"
     if key not in trj:
         st.warning(f"Missing: {key}")
         return
 
-    series = np.asarray(trj[key])  # (Nsim, T)
+    series = np.asarray(trj[key])  # shape: (Nsim, T)
+    if series.ndim != 2 or series.size == 0:
+        st.warning(f"Invalid series for {key}")
+        return
+
     Nsim, T = series.shape
-
-    # tidy data: one row per (sim, day)
-    df = pd.DataFrame({
-        "Day": np.tile(np.arange(T), Nsim),
-        "Simulation": np.repeat(np.arange(Nsim), T),
-        "Value": series.reshape(-1).astype(float),
-    })
-
-    # base encodings
-    base = alt.Chart(df).encode(
-        x=alt.X("Day:Q", axis=alt.Axis(title="Time", labelColor="white", titleColor="white")),
-        y=alt.Y("Value:Q", axis=alt.Axis(title=f"{comp} ({age})", labelColor="white", titleColor="white")),
-    ).properties(
-        height=350,
-        background=facecolor,
+    df = pd.DataFrame(
+        {
+            "Day": np.tile(np.arange(T), Nsim),
+            "Simulation": np.repeat(np.arange(Nsim), T).astype(str),
+            "Value": series.reshape(-1).astype(float),
+        }
     )
 
-    # all trajectories: thin, semi-transparent white
+    # Base encodings; NOTE: no background here
+    base = alt.Chart(df).encode(
+        x=alt.X("Day:Q", axis=alt.Axis(title="Time", labelColor="white", titleColor="white")),
+        y=alt.Y(
+            "Value:Q",
+            axis=alt.Axis(title=f"{comp} ({age})", labelColor="white", titleColor="white"),
+        ),
+    ).properties(height=350)
+
+    # All trajectories (thin, semi-transparent white)
     traj = base.mark_line(strokeWidth=0.7, opacity=0.10, color="white").encode(
         detail="Simulation:N"
     )
 
     layers = [traj]
 
-    # median computed inside Altair (no separate DataFrame)
     if show_median:
+        # Compute median **inside Altair** so both layers share the same spec
         median_line = (
-            base
-            .transform_aggregate(Median="median(Value)", groupby=["Day"])
+            base.transform_aggregate(Median="median(Value)", groupby=["Day"])
             .mark_line(strokeWidth=2, color=linecolor)
             .encode(y="Median:Q")
         )
@@ -52,11 +61,13 @@ def plot_compartments_traj_altair(trj, comp, age, show_median=True,
         gridColor="white",
         gridOpacity=0.4,
         gridDash=[2, 4],   # dotted horizontal grid
-        domain=False,
+        domain=False,      # remove spines
         tickColor="white",
-        tickOpacity=0.0,
+        tickOpacity=0.0,   # hide tick marks
     ).configure_view(
-        strokeWidth=0
+        strokeWidth=0      # remove outer border
+    ).configure(
+        background=facecolor  # <- set background at TOP LEVEL
     )
 
     st.altair_chart(chart, use_container_width=True)
