@@ -111,46 +111,79 @@ with st.sidebar.form("sim_cfg"):
         else:
             st.write("No interventions enabled.")
 
-    # Parameter Override 
+    # -------- Parameter Overrides --------
     st.markdown("### 🦠 Parameter overrides")
 
-    # Hold all override states in session_state so switching layer keeps values
-    override_parameters = ["R0", "infectious_period"]
-    default_values = {"R0": R0_v, "infectious_period": infectious_period_v}
-    display_names = {"R0": "$R_0$", "infectious_period": "Infectious period"}
-    for param in override_parameters:
-        st.session_state.setdefault(f"{param}_ovr_en", False)
-        st.session_state.setdefault(f"{param}_ovr_start", 0)
-        st.session_state.setdefault(f"{param}_ovr_end", simulation_days_v)
-        st.session_state.setdefault(f"{param}_ovr_value", default_values[param])
+    override_specs = [
+        {"name": "R0", "disp": "$R_0$", "min": 0.0, "max": 20.0, "step": 0.1, "default": float(R0_v)},
+        {"name": "infectious_period", "disp": "Infectious period (days)","min": 1.0, "max": 30.0, "step": 0.5, "default": float(infectious_period_v)},
+    ]
 
-    for param in override_parameters:
-        with st.expander(f"Override {display_names[param]}", expanded=False):
-            st.session_state[f"{param}_ovr_en"] = st.checkbox("Enable override", value=False)
+    # Initialize defaults once
+    for spec in override_specs:
+        p = spec["name"]
+        st.session_state.setdefault(f"{p}_ovr_en", False)
+        st.session_state.setdefault(f"{p}_ovr_start", 0)
+        st.session_state.setdefault(f"{p}_ovr_end", simulation_days_v)
+        st.session_state.setdefault(f"{p}_ovr_value", spec["default"])
+
+    for spec in override_specs:
+        p = spec["name"]
+        disp = spec["disp"]
+        minv, maxv, step = spec["min"], spec["max"], spec["step"]
+
+        with st.expander(f"Override {disp}", expanded=False):
+            # Each widget gets a unique key; we pass current state as defaults
+            st.checkbox(
+                "Enable override",
+                key=f"{p}_ovr_en",
+                value=st.session_state[f"{p}_ovr_en"],
+            )
             c1, c2 = st.columns(2)
             with c1:
-                st.session_state[f"{param}_ovr_start"] = st.number_input("Start day", min_value=0, max_value=simulation_days_v, value=0, step=1)
+                st.number_input(
+                    "Start day",
+                    min_value=0, max_value=simulation_days_v,
+                    value=st.session_state[f"{p}_ovr_start"],
+                    step=1,
+                    key=f"{p}_ovr_start",
+                )
             with c2:
-                st.session_state[f"{param}_ovr_end"] = st.number_input("End day", min_value=int(st.session_state[f"{param}_ovr_start"]), max_value=simulation_days_v, value=simulation_days_v, step=1)
-            st.session_state[f"{param}_ovr_value"] = st.slider("Override value", min_value=0.0, max_value=20.0, value=default_values[param], step=0.1)
+                st.number_input(
+                    "End day",
+                    min_value=int(st.session_state[f"{p}_ovr_start"]),
+                    max_value=simulation_days_v,
+                    value=st.session_state[f"{p}_ovr_end"],
+                    step=1,
+                    key=f"{p}_ovr_end",
+                )
+            st.slider(
+                "Override value",
+                min_value=minv, max_value=maxv,
+                value=float(st.session_state[f"{p}_ovr_value"]),
+                step=step,
+                key=f"{p}_ovr_value",
+            )
 
-    # build dict from session_state
+    # Build dict from session_state
     parameter_overrides = {}
-    for param in override_parameters:
-        if st.session_state[f"{param}_ovr_en"]:
-            parameter_overrides[param] = {
-                "start_day": int(st.session_state[f"{param}_ovr_start"]),
-                "end_day": int(st.session_state[f"{param}_ovr_end"]),
-                "param": float(st.session_state[f"{param}_ovr_value"])
+    for spec in override_specs:
+        p = spec["name"]
+        if st.session_state[f"{p}_ovr_en"]:
+            parameter_overrides[p] = {
+                "start_day": int(st.session_state[f"{p}_ovr_start"]),
+                "end_day":   int(st.session_state[f"{p}_ovr_end"]),
+                "param":     float(st.session_state[f"{p}_ovr_value"]),
             }
 
     with st.expander("Overrides summary", expanded=True):
         if parameter_overrides:
             for k, v in parameter_overrides.items():
-                st.write(f"**{display_names[k]}**: days {v['start_day']}–{v['end_day']}, value {v['param']}")
+                label = next(s["disp"] for s in override_specs if s["name"] == k)
+                st.write(f"**{label}**: days {v['start_day']}–{v['end_day']}, value {v['param']}")
         else:
             st.write("No overrides enabled.")
-        
+
     st.markdown("### 📖 About")
     with st.expander("Readme", expanded=False):
         st.markdown("""
