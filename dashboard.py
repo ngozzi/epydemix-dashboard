@@ -11,7 +11,6 @@ from utils import invalidate_results, load_locations
 from compute_statistics import compute_attack_rate, compute_peak_size, compute_peak_time, compute_endemic_state
 
 # ---------- LAYOUT ----------
-#st.sidebar.image("https://cdn.prod.website-files.com/67bde9057c9d78157874e100/67c1d1122127f0a9ce202197_epydemix-logo-p-500.png", use_container_width=True)
 st.sidebar.markdown(
     """
     <a href="https://epydemix.org" target="_blank">
@@ -33,7 +32,10 @@ st.markdown(
         z-index: 100;
     }
     </style>
-    <img src="https://www.isi.it/wp-content/uploads/2023/11/isi-logo-white.svg" class="fixed-logo">
+    <a href="https://www.isi.it/" target="_blank">
+        <img src="https://www.isi.it/wp-content/uploads/2023/11/isi-logo-white.svg" 
+             style="width:100%;">
+    </a>
     """,
     unsafe_allow_html=True
 )
