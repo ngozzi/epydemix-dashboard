@@ -236,8 +236,6 @@ else:
     m = st.session_state.get("model")
 
     # Visualization tabs
-    #tab1, tab2, tab3, tab4 = st.tabs(["Compartments", "Population", "Contacts", "Interventions"])
-    # Define the tab labels
     tab_labels = ["Compartments", "Population", "Contacts", "Interventions"]
 
     # Initialize default tab in session state
@@ -323,10 +321,10 @@ else:
         st.pyplot(fig)
 
     if st.session_state.active_tab == "Contacts":
-        contact = st.selectbox("Contact Layer", LAYER_NAMES, index=0, key="p2_layer")
+        contact = st.selectbox("Contact Layer",  ["overall"] + LAYER_NAMES, index=0, key="p2_layer")
         fig, ax = plt.subplots(dpi=600)
         fig.set_facecolor(facecolor)
-        plot_contact_matrix(ax, population.contact_matrices[contact], population.Nk_names, "Contacts per day in " + contact)
+        plot_contact_matrix(ax, contact, population.contact_matrices, population.Nk_names, "Contacts per day in " + contact)
         st.pyplot(fig)
 
     if st.session_state.active_tab == "Interventions":

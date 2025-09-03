@@ -26,8 +26,14 @@ def plot_compartments_traj(ax, trj, comp, age, show_median=True, facecolor="#0c1
     ax.grid(axis="y", linestyle="dotted", alpha=0.5, linewidth=0.5)
 
 
-def plot_contact_matrix(ax, matrix, groups, title, facecolor="#0c1019", cmap="mako"):
+def plot_contact_matrix(ax, layer, matrices, groups, title, facecolor="#0c1019", cmap="mako"):
     """Plot the contact matrix"""
+
+    if layer == "overall": 
+        matrix = np.array([matrices[layer] for layer in matrices]).sum(axis=0)
+    else:
+        matrix = matrices[layer]
+
     ax.set_facecolor(facecolor)
     ax.imshow(matrix, origin="lower", aspect="equal", cmap=sns.color_palette(cmap, as_cmap=True))
     # annotate the values
