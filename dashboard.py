@@ -377,7 +377,7 @@ else:
     m = st.session_state.get("model")
 
     # Visualization tabs
-    tab_labels = ["Compartments", "Population", "Contacts", "Interventions"]
+    tab_labels = ["Summary", "Compartments", "Population", "Contacts", "Interventions"]
 
     # Initialize default tab in session state
     if "active_tab" not in st.session_state:
@@ -391,6 +391,74 @@ else:
         horizontal=True,
         key="active_tab"  
     )
+
+    if st.session_state.active_tab == "Summary":
+        st.subheader("Run configuration")
+
+        # -- Basic settings table
+        base_rows = [
+            ("Model", model_type),
+            ("Country", country_name),
+            ("Simulation days", simulation_days_v),
+            ("Simulations (N)", n_v),
+        ]
+        # model parameters (base / global)
+        base_rows.append(("R₀ (base)", f"{R0_v:.2f}"))
+        base_rows.append(("Infectious period (base, days)", f"{infectious_period_v:.2f}"))
+        if model_type == "SEIR":
+            base_rows.append(("Incubation period (base, days)", f"{incubation_period_v:.2f}"))
+
+        st.table(pd.DataFrame(base_rows, columns=["Setting", "Value"]))
+
+        # -- Interventions table
+        st.subheader("Contact interventions")
+        if interventions:
+            df_iv = pd.DataFrame(
+                [
+                    {
+                        "Layer": layer,
+                        "Start day": v["start"],
+                        "End day": v["end"],
+                        "Reduction (%)": int(round(100 * v["reduction"]))
+                    }
+                    for layer, v in interventions.items()
+                ]
+            ).sort_values(["Start day", "Layer"])
+            st.dataframe(df_iv, use_container_width=True)
+        else:
+            st.info("No contact interventions enabled.")
+
+        # -- Parameter overrides table
+        st.subheader("Parameter overrides")
+        if parameter_overrides:
+            # map internal names to display + how the engine interprets them
+            disp_map = {
+                "R0": ("R₀", "transmission_rate (β) computed from R₀"),
+                "infectious_period": ("Infectious period (days)", "recovery_rate (μ = 1 / period)")
+            }
+            rows = []
+            for pname, spec in parameter_overrides.items():
+                disp, applies_to = disp_map.get(pname, (pname, ""))
+                rows.append({
+                    "Parameter": disp,
+                    "Start day": spec["start_day"],
+                    "End day": spec["end_day"],
+                    "Override value": spec["param"],
+                    "Affects": applies_to,
+                })
+            df_ovr = pd.DataFrame(rows).sort_values(["Start day", "Parameter"])
+            # Nice formatting
+            fmt = {"Override value": "{:.2f}"}
+            st.dataframe(df_ovr.style.format(fmt), use_container_width=True)
+        else:
+            st.info("No parameter overrides enabled.")
+
+        # Small footer note
+        st.caption(
+            "Notes: Interventions scale contacts by layer in their active window. "
+            "R₀ overrides adjust β; infectious-period overrides adjust μ; both apply only within their day range."
+        )
+
 
     if st.session_state.active_tab == "Compartments":
         #compartment = st.selectbox("Compartment", m.compartments, index=int(np.where(np.array(m.compartments) == "Infected")[0][0]), key="p1_comp")
