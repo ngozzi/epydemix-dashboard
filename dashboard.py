@@ -222,6 +222,18 @@ with st.sidebar.form("sim_cfg"):
         else:
             st.write("No overrides enabled.")
 
+        c1, c2 = st.columns(2)
+    
+    with c1:
+        apply_cfg = st.form_submit_button("⬇️ Apply settings")
+        if apply_cfg:
+            invalidate_results()
+    with c2:
+        reset = st.form_submit_button("♻️ Reset all")
+        if reset:
+            streamlit_js_eval(js_expressions="parent.window.location.reload()")
+
+    st.markdown("---")
     st.markdown("### 📖 About")
     with st.expander("Readme", expanded=False):
         st.markdown("""
@@ -290,15 +302,6 @@ with st.sidebar.form("sim_cfg"):
                     - Interventions reduce contacts; **$R_0$ overrides** change **β**, **infectious-period overrides** change **μ**—only inside their chosen window.
                     """)
  
-    c1, c2 = st.columns(2)
-    with c1:
-        apply_cfg = st.form_submit_button("⬇️ Apply settings")
-        if apply_cfg:
-            invalidate_results()
-    with c2:
-        reset = st.form_submit_button("♻️ Reset all")
-        if reset:
-            streamlit_js_eval(js_expressions="parent.window.location.reload()")
 
 # ---------- MAIN ----------
 st.title("Epydemix Simulation Dashboard")
