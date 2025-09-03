@@ -120,10 +120,10 @@ def plot_contact_intensity_native(rhos: dict, facecolor="#0c1019"):
 
     nice_palette = [
         "#50f0d8",  # overall (cyan)
-        "#ff7f0e",  # home
-        "#1f77b4",  # school
-        "#2ca02c",  # work
-        "#d62728"  # community
+        "#344b47",  # home
+        "#97b1ab",  # school
+        "#84caff",  # work
+        "#4395e3"  # community
     ]
     color_scale = alt.Scale(domain=layers, range=nice_palette[:len(layers)])
 
@@ -145,7 +145,7 @@ def plot_contact_intensity_native(rhos: dict, facecolor="#0c1019"):
         ),
         tooltip=[alt.Tooltip("Layer:N"), alt.Tooltip("Day:Q"), alt.Tooltip("Value:Q", format=".2f")],
     ).properties(
-        height=350,
+        height=450,
         background=facecolor,
     )
 
