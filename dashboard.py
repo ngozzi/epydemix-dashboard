@@ -11,7 +11,16 @@ from utils import invalidate_results, load_locations
 from compute_statistics import compute_attack_rate, compute_peak_size, compute_peak_time, compute_endemic_state
 
 # ---------- LAYOUT ----------
-st.sidebar.image("https://cdn.prod.website-files.com/67bde9057c9d78157874e100/67c1d1122127f0a9ce202197_epydemix-logo-p-500.png", use_container_width=True)
+#st.sidebar.image("https://cdn.prod.website-files.com/67bde9057c9d78157874e100/67c1d1122127f0a9ce202197_epydemix-logo-p-500.png", use_container_width=True)
+st.markdown(
+    """
+    <a href="https://epydemix.org" target="_blank">
+        <img src="https://cdn.prod.website-files.com/67bde9057c9d78157874e100/67c1d1122127f0a9ce202197_epydemix-logo-p-500.png"
+             style="width:150px;">
+    </a>
+    """,
+    unsafe_allow_html=True
+)
 st.markdown(
     """
     <style>
