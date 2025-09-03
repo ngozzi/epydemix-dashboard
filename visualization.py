@@ -73,26 +73,8 @@ def plot_compartments_traj(
 
 
 def plot_contact_matrix_altair(layer, matrices, groups, title,
-                               facecolor="#0c1019", cmap="mako"):
-    """
-    Altair heatmap of a contact matrix with per-cell annotations.
-
-    Parameters
-    ----------
-    layer : str
-        One of the matrix keys, or "overall" to sum all layers.
-    matrices : dict[str, np.ndarray]
-        Mapping layer -> contact matrix (square, len(groups) x len(groups)).
-    groups : list[str]
-        Age group labels (order used for both axes).
-    title : str
-        Chart title.
-    facecolor : str
-        Background color.
-    cmap : str
-        Color palette name; supports "mako" (custom), or use any Altair/Vega scheme
-        like "viridis", "inferno", etc.
-    """
+                               facecolor="#0c1019", cmap="teals"):
+    """Altair heatmap of a contact matrix with per-cell annotations."""
 
     # --- choose matrix (layer or overall) ---
     if layer == "overall":
@@ -108,17 +90,8 @@ def plot_contact_matrix_altair(layer, matrices, groups, title,
          for i in range(n) for j in range(n)]
     )
 
-    # --- palette: approximate seaborn 'mako' if requested ---
-    # (Altair doesn't ship 'mako'; we mimic it with a cool-to-warm teal-ish ramp)
-    mako_like = [
-        "#071b2c", "#0b2c3f", "#124657", "#1c6371", "#2a817f",
-        "#3fa08b", "#61bf96", "#8cddb0", "#bfeed0", "#e6f6ec"
-    ]
-    if isinstance(cmap, str) and cmap.lower() == "mako":
-        color_scale = alt.Scale(range=mako_like)
-    else:
-        # Use a named Vega scheme or custom list passed in
-        color_scale = alt.Scale(scheme=cmap) if isinstance(cmap, str) else alt.Scale(range=cmap)
+
+    color_scale = alt.Scale(scheme=cmap) if isinstance(cmap, str) else alt.Scale(range=cmap)
 
     # Domain from data range
     vmin, vmax = float(df["Value"].min()), float(df["Value"].max())
@@ -132,10 +105,10 @@ def plot_contact_matrix_altair(layer, matrices, groups, title,
                 sort=groups,
                 axis=alt.Axis(
                     title="Age Group (contacted)",
-                    labelAngle=45, labelColor="white", titleColor="white"
+                    labelColor="white", titleColor="white"
                 )),
         y=alt.Y("Contacting:N",
-                sort=groups,
+                sort=groups[::-1],
                 axis=alt.Axis(
                     title="Age Group (contacting)",
                     labelColor="white", titleColor="white"
