@@ -214,11 +214,16 @@ if run_button:
 
         simulation_dates = compute_simulation_dates(start_date, end_date)
         m.compute_contact_reductions(simulation_dates)
-        rho = [np.linalg.eigvals(m.Cs[date]["overall"]).max().real for date in simulation_dates]
-        st.session_state["rho"] = np.array(rho) * 100 / spectral_radius
+
+        # Compute contact intensity in different layers
+        rhos = {}
+        for layer in LAYER_NAMES:
+            rho_0 = np.linalg.eigvals(population.contact_matrices[layer]).max().real
+            rhos[layer] = 100 * np.array([np.linalg.eigvals(m.Cs[date][layer]).max().real for date in simulation_dates]) / rho_0
+        rhos["overall"] = 100 * np.array([np.linalg.eigvals(m.Cs[date]["overall"]).max().real for date in simulation_dates]) / spectral_radius
+        st.session_state["rhos"] = rhos
         st.session_state["ever_ran"] = True
         st.session_state["model"] = m
-
 
 # ---- VISUALIZATION (ALWAYS RUNS) ----
 trj = st.session_state.get("trajectories")
@@ -232,7 +237,7 @@ if trj is None:
 
 else:
     population = st.session_state.get("population")
-    rho = st.session_state.get("rho")
+    rhos = st.session_state.get("rhos")
     m = st.session_state.get("model")
 
     # Visualization tabs
@@ -330,7 +335,7 @@ else:
     if st.session_state.active_tab == "Interventions":
         fig, ax = plt.subplots(dpi=600)
         fig.set_facecolor(facecolor)
-        plot_contact_intensity(ax, rho)
+        plot_contact_intensity(ax, rhos)
         st.pyplot(fig)
 
 

@@ -74,10 +74,23 @@ def plot_population(ax, population, show_percent=False, facecolor="#0c1019", lin
     ax.grid(axis="y", linestyle="dotted", alpha=0.5, linewidth=0.5, zorder=0)
 
 
-def plot_contact_intensity(ax, rho, facecolor="#0c1019", linecolor="#50f0d8"):
+def plot_contact_intensity(ax, rhos, facecolor="#0c1019", linecolor="#50f0d8"):
     """Plot the contact intensity"""
     ax.set_facecolor(facecolor)
-    ax.plot(range(len(rho)), rho, color=linecolor, linewidth=2)
+
+    for layer, rho in rhos.items():
+        ax.plot(range(len(rho)), 
+                rho, 
+                color=linecolor if layer == "overall" else "grey", 
+                label=layer if layer == "overall" else None,
+                linewidth=2, 
+                alpha = 1.0 if layer == "overall" else 0.5)
+        
+    # annotate the name of the layers
+    for layer, rho in rhos.items():
+        ax.text(len(rho) - 1, rho[-1], layer, ha="right", va="bottom", color="white", fontsize=6)
+
+    ax.legend(facecolor=facecolor, labelcolor="white", frameon=False)
     ax.set_xlabel("Days", color="white")
     ax.set_ylabel("Contact Intensity (%)", color="white")
     for s in ax.spines.values():
