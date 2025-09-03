@@ -4,12 +4,8 @@ import seaborn as sns
 import altair as alt
 import streamlit as st
 
-import pandas as pd
-import numpy as np
-import altair as alt
-import streamlit as st
 
-def plot_compartments_traj_altair(
+def plot_compartments_traj(
     trj, comp, age, show_median=True, facecolor="#0c1019", linecolor="#50f0d8"
 ):
     key = f"{comp}_{age}"
@@ -74,31 +70,6 @@ def plot_compartments_traj_altair(
     )
 
     st.altair_chart(chart, use_container_width=True)
-
-
-
-def plot_compartments_traj(ax, trj, comp, age, show_median=True, facecolor="#0c1019", linecolor="#50f0d8"):
-    """Plot the trajectory of a compartment over time"""
-    # guard: key might not exist
-    key = f"{comp}_{age}"
-    if key not in trj:
-        ax.text(0.5, 0.5, f"Missing: {key}", ha="center", va="center", color="white")
-        return
-    series = trj[key]
-    T = range(len(series[0]))
-    ax.set_facecolor(facecolor)
-    for i in range(len(series)):
-        ax.plot(T, series[i], color="white", alpha=0.1, linewidth=0.7)
-    if show_median:
-        import numpy as np
-        ax.plot(T, np.median(series, axis=0), label="Median", color=linecolor)
-        ax.legend(facecolor=facecolor, labelcolor="white", frameon=False)
-    ax.set_xlabel("Time", color="white")
-    ax.set_ylabel(comp + " (" + age + ")", color="white")
-    for s in ax.spines.values():
-        s.set_visible(False)
-    ax.tick_params(width=0, colors="white")
-    ax.grid(axis="y", linestyle="dotted", alpha=0.5, linewidth=0.5)
 
 
 def plot_contact_matrix(ax, layer, matrices, groups, title, facecolor="#0c1019", cmap="mako"):
