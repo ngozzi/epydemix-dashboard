@@ -87,8 +87,11 @@ with st.sidebar.form("sim_cfg"):
     for sel in LAYER_NAMES:
         with st.expander(f"Configure: {sel}", expanded=False):
             st.session_state[f"{sel}_en"]  = st.checkbox(f"Enable intervention on {sel}", value=st.session_state[f"{sel}_en"])
-            st.session_state[f"{sel}_start"] = st.number_input("Start day", 0, simulation_days_v, st.session_state[f"{sel}_start"], 1, key=f"in_{sel}_start")
-            st.session_state[f"{sel}_end"]   = st.number_input("End day", int(st.session_state[f"{sel}_start"]), simulation_days_v, st.session_state[f"{sel}_end"], 1, key=f"in_{sel}_end")
+            c1, c2 = st.columns(2)
+            with c1:
+                st.session_state[f"{sel}_start"] = st.number_input("Start day", 0, simulation_days_v, st.session_state[f"{sel}_start"], 1, key=f"in_{sel}_start")
+            with c2:
+                st.session_state[f"{sel}_end"]   = st.number_input("End day", int(st.session_state[f"{sel}_start"]), simulation_days_v, st.session_state[f"{sel}_end"], 1, key=f"in_{sel}_end")
             st.session_state[f"{sel}_red"]   = st.slider("Reduction of contacts (%)", 0, 100, st.session_state[f"{sel}_red"], 1, key=f"in_{sel}_red")
 
     # build dict from session_state
