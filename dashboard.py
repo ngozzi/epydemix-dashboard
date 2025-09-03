@@ -434,7 +434,7 @@ else:
         if parameter_overrides:
             # map internal names to display
             disp_map = {
-                "R0": "$R_0$",
+                "R0": "R₀",
                 "infectious_period": "Infectious period (days)"
             }
             rows = []
