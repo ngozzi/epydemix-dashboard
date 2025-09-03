@@ -158,7 +158,7 @@ def plot_contact_intensity_native(rhos: dict, facecolor="#0c1019"):
 
     # ---- style tweaks: dotted horizontal grid, no vertical grid, no spines
     chart = chart.configure_axis(
-        grid=True,
+        grid=False,
         gridColor="white",
         gridOpacity=0.4,
         gridDash=[2, 4],       # dotted
