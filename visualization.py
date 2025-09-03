@@ -105,52 +105,34 @@ def plot_contact_intensity_native(rhos: dict):
     """
     rhos: dict like {"overall": [..], "home":[..], "school":[..], ...}
     """
-    # Convert dict to DataFrame
-    df = pd.DataFrame(rhos)
-
-    # Add Day column as index
-    df.index.name = "Day"
-
-    # Streamlit native line chart
-    st.line_chart(df, height=300)
-
-def plot_contact_intensity_altair(rhos: dict):
-    """
-    rhos: dict[layer_name -> list or np.array of values]
-    """
-    # convert to tidy DataFrame
-    data = []
+    # Convert dict to tidy DataFrame
+    rows = []
     for layer, rho in rhos.items():
         for day, val in enumerate(rho):
-            data.append({"Day": day, "Layer": layer, "Value": val})
-    df = pd.DataFrame(data)
+            rows.append({"Day": day, "Layer": layer, "Value": val})
+    df = pd.DataFrame(rows)
 
-    # base chart
-    base = alt.Chart(df).mark_line().encode(
-        x=alt.X("Day:Q", axis=alt.Axis(title="Days", labelColor="white", titleColor="white")),
-        y=alt.Y("Value:Q", axis=alt.Axis(title="Contact Intensity (%)", labelColor="white", titleColor="white")),
-        color=alt.condition(
-            alt.datum.Layer == "overall",
-            alt.value("#50f0d8"),   # main color
-            alt.value("grey")       # other layers
-        ),
-        opacity=alt.condition(
-            alt.datum.Layer == "overall",
-            alt.value(1.0),
-            alt.value(0.5)
+    # Build chart
+    chart = (
+        alt.Chart(df)
+        .mark_line()
+        .encode(
+            x=alt.X("Day:Q", axis=alt.Axis(title="Days", labelColor="white", titleColor="white")),
+            y=alt.Y("Value:Q", axis=alt.Axis(title="Contact Intensity (%)", labelColor="white", titleColor="white")),
+            color=alt.condition(
+                alt.datum.Layer == "overall",
+                alt.value("#50f0d8"),  # cyan for overall
+                alt.value("grey")      # grey for other layers
+            ),
+            opacity=alt.condition(
+                alt.datum.Layer == "overall",
+                alt.value(1.0),
+                alt.value(0.5)
+            ),
+            detail="Layer:N",
+            tooltip=["Layer", "Day", alt.Tooltip("Value", format=".2f")]
         )
-    ).properties(
-        width=600, height=400, background="#0c1019"
+        .properties(height=300, background="#0c1019")
     )
 
-    # add end-labels for each layer
-    last_points = df.groupby("Layer").tail(1)
-    text = alt.Chart(last_points).mark_text(align="left", dx=5, dy=-5, color="white", size=10).encode(
-        x="Day:Q", y="Value:Q", text="Layer"
-    )
-
-    chart = base + text
     st.altair_chart(chart, use_container_width=True)
-
-    
-
