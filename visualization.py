@@ -72,8 +72,7 @@ def plot_compartments_traj(
     st.altair_chart(chart, use_container_width=True)
 
 
-def plot_contact_matrix_altair(layer, matrices, groups, title,
-                               facecolor="#0c1019", cmap="teals"):
+def plot_contact_matrix(layer, matrices, groups, facecolor="#0c1019", cmap="teals"):
     """Altair heatmap of a contact matrix with per-cell annotations."""
 
     # --- choose matrix (layer or overall) ---
