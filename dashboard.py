@@ -73,11 +73,6 @@ with st.sidebar.form("sim_cfg"):
 
         if model_type != "SIS":
             initial_immunity_percentage_v = st.number_input("Initial Immunity Percentage", 0.0, 100.0, 0.0, 1.0)
-    
-    # Parameter overrides
-    with st.expander("Parameter Overrides", expanded=False):
-        # TODO: add parameter overrides
-        pass
 
     # Interventions
     st.markdown("### 🤝 Contact Interventions")
@@ -112,6 +107,43 @@ with st.sidebar.form("sim_cfg"):
                 st.write(f"**{k}**: days {v['start']}–{v['end']}, reduction {int(v['reduction']*100)}%")
         else:
             st.write("No interventions enabled.")
+
+    # Parameter Override 
+    st.markdown("### 🤝 Parameter overrides")
+    with st.expander("Parameter overrides", expanded=False):
+        enable_param_ovr = st.checkbox("Enable overrides for a specific day range", value=False, key="param_ovr_en")
+
+        if enable_param_ovr:
+            c1, c2 = st.columns(2)
+            with c1:
+                ovr_start = st.number_input("Start day", min_value=0, max_value=simulation_days_v, value=30, step=1, key="param_ovr_start")
+            with c2:
+                ovr_end   = st.number_input("End day", min_value=int(ovr_start), max_value=simulation_days_v, value=min(simulation_days_v, ovr_start+30), step=1, key="param_ovr_end")
+
+            st.caption("During this interval, use the following parameter values:")
+
+            ovr_R0 = st.slider("Override R₀", min_value=0.0, max_value=20.0, value=float(R0_v), step=0.1, key="param_ovr_R0")
+            ovr_inf_period = st.slider("Override Infectious period (days)", min_value=1.0, max_value=30.0, value=float(infectious_period_v), step=0.5, key="param_ovr_inf")
+
+            # Store a compact spec for downstream use
+            st.session_state["param_overrides"] = {
+                "enabled": True,
+                "start_day": int(ovr_start),
+                "end_day": int(ovr_end),
+                "R0": float(ovr_R0),
+                "infectious_period": float(ovr_inf_period),
+            }
+
+            # Quick preview (computed targets; used later)
+            mu_base   = 1.0 / infectious_period_v
+            mu_override = 1.0 / ovr_inf_period
+            # spectral_radius computed at run-time; here just display the deltas
+            st.info(
+                f"Override will set μ (recovery rate) from **{mu_base:.3f}** to **{mu_override:.3f}** "
+                f"and adjust β to match R₀={ovr_R0:.2f} over days {ovr_start}–{ovr_end}."
+            )
+        else:
+            st.session_state["param_overrides"] = {"enabled": False}
 
     st.markdown("### 📖 About")
     with st.expander("Readme", expanded=False):
