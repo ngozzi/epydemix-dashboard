@@ -97,7 +97,7 @@ def plot_contact_matrix(layer, matrices, groups, facecolor="#0c1019", cmap="teal
 
     # --- base heatmap with cell strokes to emulate grid ---
     base = alt.Chart(df).properties(
-        width="container", height=500
+        width="container", height=550
     ).encode(
         x=alt.X("Contacted:N",
                 sort=groups,
