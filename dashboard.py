@@ -105,14 +105,14 @@ with st.sidebar.form("sim_cfg"):
                     key=f"in_{sel}_end"
                 )
 
-            st.slider(
-                "Reduction of contacts (%)",
-                min_value=0, max_value=100,
-                value=float(st.session_state[f"{sel}_red"]),
-                step=1,
-                key=f"in_{sel}_red",
-            )
-            #st.session_state[f"{sel}_red"]   = st.slider("Reduction of contacts (%)", 0, 100, st.session_state[f"{sel}_red"], 1, key=f"in_{sel}_red")
+            #st.slider(
+            #    "Reduction of contacts (%)",
+            #    min_value=0, max_value=100,
+            #    value=float(st.session_state[f"{sel}_red"]),
+            #    step=1,
+            #    key=f"in_{sel}_red",
+            #)
+            st.session_state[f"{sel}_red"]   = st.slider("Reduction of contacts (%)", 0, 100, st.session_state[f"{sel}_red"], 1, key=f"in_{sel}_red")
 
     # build dict from session_state
     interventions = {}
