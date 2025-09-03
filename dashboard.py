@@ -38,7 +38,7 @@ facecolor="#0c1019"
 st.sidebar.title("Configuration")
 with st.sidebar.form("sim_cfg"):
 
-    st.markdown("### Simulation & Model Settings")
+    st.markdown("### ⚙️ Simulation & Model Settings")
 
     with st.expander("Simulation Parameters", expanded=True):
         model_type = st.selectbox("Model Type", ["SIR", "SEIR", "SIS"], index=1)
@@ -70,7 +70,7 @@ with st.sidebar.form("sim_cfg"):
         pass
 
     # Interventions
-    st.markdown("### Contact Interventions")
+    st.markdown("### 🤝 Contact Interventions")
     
     # Hold all layer states in session_state so switching layer keeps values
     for layer in LAYER_NAMES:
