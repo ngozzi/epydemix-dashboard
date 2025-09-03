@@ -99,7 +99,7 @@ def plot_contact_matrix_altair(layer, matrices, groups, title,
 
     # --- base heatmap with cell strokes to emulate grid ---
     base = alt.Chart(df).properties(
-        width="container", height=450
+        width="container", height=500
     ).encode(
         x=alt.X("Contacted:N",
                 sort=groups,
@@ -128,7 +128,7 @@ def plot_contact_matrix_altair(layer, matrices, groups, title,
 
     # --- annotation layer (values in cells) ---
     text = base.mark_text(
-        color="white", fontSize=10
+        color="white", fontSize=12
     ).encode(
         text=alt.Text("Value:Q", format=".2f")
     )
