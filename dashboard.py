@@ -89,10 +89,30 @@ with st.sidebar.form("sim_cfg"):
             st.session_state[f"{sel}_en"]  = st.checkbox(f"Enable intervention on {sel}", value=st.session_state[f"{sel}_en"])
             c1, c2 = st.columns(2)
             with c1:
-                st.session_state[f"{sel}_start"] = st.number_input("Start day", 0, simulation_days_v, st.session_state[f"{sel}_start"], 1, key=f"in_{sel}_start")
+                st.number_input(
+                    "Start day",
+                    min_value=0, max_value=simulation_days_v,
+                    value=st.session_state[f"{sel}_start"],
+                    step=1,
+                    key=f"in_{sel}_start",
+                )
             with c2:
-                st.session_state[f"{sel}_end"]   = st.number_input("End day", int(st.session_state[f"{sel}_start"]), simulation_days_v, st.session_state[f"{sel}_end"], 1, key=f"in_{sel}_end")
-            st.session_state[f"{sel}_red"]   = st.slider("Reduction of contacts (%)", 0, 100, st.session_state[f"{sel}_red"], 1, key=f"in_{sel}_red")
+                st.number_input(
+                    "End day",
+                    min_value=int(st.session_state[f"{sel}_start"]), max_value=simulation_days_v,
+                    value=st.session_state[f"{sel}_end"],
+                    step=1,
+                    key=f"in_{sel}_end",
+                )
+
+            st.slider(
+                "Reduction of contacts (%)",
+                min_value=0, max_value=100,
+                value=float(st.session_state[f"{sel}_red"]),
+                step=1,
+                key=f"in_{sel}_red",
+            )
+            #st.session_state[f"{sel}_red"]   = st.slider("Reduction of contacts (%)", 0, 100, st.session_state[f"{sel}_red"], 1, key=f"in_{sel}_red")
 
     # build dict from session_state
     interventions = {}
