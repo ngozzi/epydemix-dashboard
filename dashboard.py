@@ -222,8 +222,7 @@ with st.sidebar.form("sim_cfg"):
         else:
             st.write("No overrides enabled.")
 
-        c1, c2 = st.columns(2)
-    
+    c1, c2 = st.columns(2)
     with c1:
         apply_cfg = st.form_submit_button("⬇️ Apply settings")
         if apply_cfg:
