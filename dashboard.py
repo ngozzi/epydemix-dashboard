@@ -589,6 +589,8 @@ else:
         df_mat = contact_matrix_df(contact, population.contact_matrices, population.Nk_names)
 
         with c2:
+            st.write("")
+            st.write("")
             st.download_button(
                 label="⬇️ Download matrix as CSV",
                 data=df_mat.round(3).to_csv(index=True),
