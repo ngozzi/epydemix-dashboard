@@ -125,7 +125,7 @@ with st.sidebar.form("sim_cfg"):
         ovr_R0 = st.slider("Override $R_0$", min_value=0.0, max_value=20.0, value=float(R0_v), step=0.1, key="param_ovr_R0")
 
         # Store a compact spec for downstream use
-        st.session_state["R0_overrides"] = {
+        R0_overrides = {
             "enabled": R0_ovr_en,
             "start_day": int(R0_ovr_start),
             "end_day": int(R0_ovr_end),
@@ -144,12 +144,27 @@ with st.sidebar.form("sim_cfg"):
         ovr_inf_period = st.slider("Override infectious period", min_value=1.0, max_value=20.0, value=float(infectious_period_v), step=0.1, key="param_ovr_inf_period")
 
         # Store a compact spec for downstream use
-        st.session_state["infectious_period_overrides"] = {
+        infectious_period_overrides = {
             "enabled": inf_ovr_en,
             "start_day": int(inf_ovr_start),
             "end_day": int(inf_ovr_end),
             "param": float(ovr_inf_period)
         }
+
+    # build dict from session_state
+    parameter_overrides = {}
+    if R0_overrides["enabled"]:
+        parameter_overrides["R0"] = R0_overrides
+    if infectious_period_overrides["enabled"]:
+        parameter_overrides["infectious_period"] = infectious_period_overrides
+
+    with st.expander("Overrides summary", expanded=True):
+        if parameter_overrides:
+            for k, v in parameter_overrides.items():
+                st.write(f"**{k}**: days {v['start_day']}–{v['end_day']}, {v['param']}")
+        else:
+            st.write("No overrides enabled.")
+
         
     st.markdown("### 📖 About")
     with st.expander("Readme", expanded=False):
