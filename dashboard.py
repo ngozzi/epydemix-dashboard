@@ -1,5 +1,4 @@
 import streamlit as st
-import matplotlib.pyplot as plt
 from epydemix.model import load_predefined_model
 from epydemix.population import load_epydemix_population
 from epydemix.utils import compute_simulation_dates
@@ -7,7 +6,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 from visualization import plot_contact_intensity, plot_population, plot_compartments_traj, plot_contact_matrix
-from utils import invalidate_results, load_locations
+from utils import invalidate_results, load_locations, contact_matrix_df
 from compute_statistics import compute_attack_rate, compute_peak_size, compute_peak_time, compute_endemic_state
 
 # ---------- LAYOUT ----------
@@ -579,6 +578,17 @@ else:
     if st.session_state.active_tab == "Contacts":
         contact = st.selectbox("Contact Layer",  ["overall"] + LAYER_NAMES, index=0, key="p2_layer")
         plot_contact_matrix(contact, population.contact_matrices, population.Nk_names)
+
+        # Build the DataFrame backing the current visualization
+        df_mat = contact_matrix_df(contact, population.contact_matrices, population.Nk_names)
+
+        # Offer CSV download
+        st.download_button(
+            label="⬇️ Download matrix as CSV",
+            data=df_mat.round(3).to_csv(index=True),      # keep row labels
+            file_name=f"{country_name}_contacts_{contact}.csv",
+            mime="text/csv",
+        )
 
     if st.session_state.active_tab == "Interventions":
         plot_contact_intensity(rhos)
