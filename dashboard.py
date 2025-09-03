@@ -26,20 +26,18 @@ st.markdown(
     <style>
     .fixed-logo {
         position: fixed;
-        bottom: 60px;   /* was 20px — push it up */
-        right: 20px;
+        bottom: 60px;   /* adjust vertical position */
+        right: 20px;    /* adjust horizontal position */
         width: 100px;
         z-index: 100;
     }
     </style>
-    <a href="https://www.isi.it/" target="_blank">
-        <img src="https://www.isi.it/wp-content/uploads/2023/11/isi-logo-white.svg" 
-             style="width:100%;">
+    <a href="https://www.isi.it" target="_blank">
+        <img src="https://www.isi.it/wp-content/uploads/2023/11/isi-logo-white.svg" class="fixed-logo">
     </a>
     """,
     unsafe_allow_html=True
 )
-
 
 # ---------- CONSTANTS ----------
 start_date = datetime(2024, 1, 1)
