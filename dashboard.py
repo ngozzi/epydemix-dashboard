@@ -431,20 +431,18 @@ else:
         # -- Parameter overrides table
         st.subheader("Parameter overrides")
         if parameter_overrides:
-            # map internal names to display + how the engine interprets them
+            # map internal names to display
             disp_map = {
-                "R0": ("R₀", "transmission_rate (β) computed from R₀"),
-                "infectious_period": ("Infectious period (days)", "recovery_rate (μ = 1 / period)")
+                "R0": "$R_0$",
+                "infectious_period": "Infectious period (days)"
             }
             rows = []
             for pname, spec in parameter_overrides.items():
-                disp, applies_to = disp_map.get(pname, (pname, ""))
                 rows.append({
-                    "Parameter": disp,
+                    "Parameter": disp_map[pname],
                     "Start day": spec["start_day"],
                     "End day": spec["end_day"],
-                    "Override value": spec["param"],
-                    "Affects": applies_to,
+                    "Override value": spec["param"]
                 })
             df_ovr = pd.DataFrame(rows).sort_values(["Start day", "Parameter"])
             # Nice formatting
@@ -456,7 +454,7 @@ else:
         # Small footer note
         st.caption(
             "Notes: Interventions scale contacts by layer in their active window. "
-            "R₀ overrides adjust β; infectious-period overrides adjust μ; both apply only within their day range."
+            "R₀ overrides adjust the transmission rate, while infectious-period overrides adjust the recovery rate; both apply only within their day range."
         )
 
 
