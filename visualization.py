@@ -89,7 +89,6 @@ def plot_contact_matrix(layer, matrices, groups, facecolor="#0c1019", cmap="teal
          for i in range(n) for j in range(n)]
     )
 
-
     color_scale = alt.Scale(scheme=cmap) if isinstance(cmap, str) else alt.Scale(range=cmap)
 
     # Domain from data range
@@ -102,6 +101,7 @@ def plot_contact_matrix(layer, matrices, groups, facecolor="#0c1019", cmap="teal
     ).encode(
         x=alt.X("Contacted:N",
                 sort=groups,
+                labelAngle=0,
                 axis=alt.Axis(
                     title="Age Group (contacted)",
                     labelColor="white", titleColor="white"
