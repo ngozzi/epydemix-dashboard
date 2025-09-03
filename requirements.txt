@@ -6,3 +6,4 @@ seaborn>=0.13
 requests>=2.31
 epydemix==1.0.1
 altair>=5.0
+streamlit_js_eval

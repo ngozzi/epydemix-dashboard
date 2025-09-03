@@ -8,6 +8,8 @@ from datetime import datetime, timedelta
 from visualization import plot_contact_intensity, plot_population, plot_compartments_traj, plot_contact_matrix
 from utils import invalidate_results, load_locations, contact_matrix_df, build_compartment_timeseries_df, reset_all_state
 from compute_statistics import compute_attack_rate, compute_peak_size, compute_peak_time, compute_endemic_state
+from streamlit_js_eval import streamlit_js_eval
+
 
 # ---------- LAYOUT ----------
 st.sidebar.markdown(
@@ -295,7 +297,7 @@ with st.sidebar.form("sim_cfg"):
     st.markdown("---")
     reset = st.form_submit_button("♻️ Reset all")
     if reset:
-        st.rerun()
+        streamlit_js_eval(js_expressions="parent.window.location.reload()")
 
 # ---------- MAIN ----------
 st.title("Epydemix Simulation Dashboard")
