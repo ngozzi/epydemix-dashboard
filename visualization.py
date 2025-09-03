@@ -103,6 +103,19 @@ def plot_contact_intensity(ax, rhos, facecolor="#0c1019", linecolor="#50f0d8"):
 
 def plot_contact_intensity_native(rhos: dict):
     """
+    rhos: dict like {"overall": [..], "home":[..], "school":[..], ...}
+    """
+    # Convert dict to DataFrame
+    df = pd.DataFrame(rhos)
+
+    # Add Day column as index
+    df.index.name = "Day"
+
+    # Streamlit native line chart
+    st.line_chart(df, height=300)
+
+def plot_contact_intensity_altair(rhos: dict):
+    """
     rhos: dict[layer_name -> list or np.array of values]
     """
     # convert to tidy DataFrame
