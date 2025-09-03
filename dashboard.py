@@ -408,7 +408,8 @@ else:
         if model_type == "SEIR":
             base_rows.append(("Incubation period (base, days)", f"{incubation_period_v:.2f}"))
 
-        st.table(pd.DataFrame(base_rows, columns=["Setting", "Value"]))
+        #st.table(pd.DataFrame(base_rows, columns=["Setting", "Value"]))
+        st.dataframe(pd.DataFrame(base_rows, columns=["Setting", "Value"]), use_container_width=True)
 
         # -- Interventions table
         st.subheader("Contact interventions")
@@ -424,7 +425,7 @@ else:
                     for layer, v in interventions.items()
                 ]
             ).sort_values(["Start day", "Layer"])
-            st.dataframe(df_iv.style.hide(axis="index"), use_container_width=True)
+            st.dataframe(df_iv, use_container_width=True)
         else:
             st.info("No contact interventions enabled.")
 
@@ -447,7 +448,7 @@ else:
             df_ovr = pd.DataFrame(rows).sort_values(["Start day", "Parameter"])
             # Nice formatting
             fmt = {"Override value": "{:.2f}"}
-            st.dataframe(df_ovr.style.hide(axis="index").format(fmt), use_container_width=True)
+            st.dataframe(df_ovr.format(fmt), use_container_width=True)
         else:
             st.info("No parameter overrides enabled.")
 
