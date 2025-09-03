@@ -580,7 +580,7 @@ else:
         with c1:
             contact = st.selectbox(
                 "Contact Layer",
-                "overall" + LAYER_NAMES,
+                ["overall"] + LAYER_NAMES,
                 index=0,
                 key="p2_layer"
             )
