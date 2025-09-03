@@ -6,7 +6,7 @@ from epydemix.utils import compute_simulation_dates
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-from visualization import plot_contact_matrix, plot_contact_intensity, plot_population, plot_compartments_traj
+from visualization import plot_contact_matrix, plot_contact_intensity, plot_population, plot_compartments_traj, plot_contact_matrix_altair
 from utils import invalidate_results, load_locations
 from compute_statistics import compute_attack_rate, compute_peak_size, compute_peak_time, compute_endemic_state
 
@@ -499,8 +499,6 @@ else:
 
 
     if st.session_state.active_tab == "Compartments":
-        #compartment = st.selectbox("Compartment", m.compartments, index=int(np.where(np.array(m.compartments) == "Infected")[0][0]), key="p1_comp")
-        #age_group   = st.selectbox("Age group", ["total", "0-4", "5-19", "20-49", "50-64", "65+"], index=0, key="p1_age")
         col1, col2 = st.columns(2)
 
         with col1:
@@ -581,10 +579,11 @@ else:
 
     if st.session_state.active_tab == "Contacts":
         contact = st.selectbox("Contact Layer",  ["overall"] + LAYER_NAMES, index=0, key="p2_layer")
-        fig, ax = plt.subplots(dpi=600)
-        fig.set_facecolor(facecolor)
-        plot_contact_matrix(ax, contact, population.contact_matrices, population.Nk_names, "Contacts per day in " + contact)
-        st.pyplot(fig)
+        #fig, ax = plt.subplots(dpi=600)
+        #fig.set_facecolor(facecolor)
+        #plot_contact_matrix(ax, contact, population.contact_matrices, population.Nk_names, "Contacts per day in " + contact)
+        #st.pyplot(fig)
+        plot_contact_matrix_altair(contact, population.contact_matrices, population.Nk_names, "Contacts per day in " + contact)
 
     if st.session_state.active_tab == "Interventions":
         plot_contact_intensity(rhos)

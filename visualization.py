@@ -72,6 +72,109 @@ def plot_compartments_traj(
     st.altair_chart(chart, use_container_width=True)
 
 
+def plot_contact_matrix_altair(layer, matrices, groups, title,
+                               facecolor="#0c1019", cmap="mako"):
+    """
+    Altair heatmap of a contact matrix with per-cell annotations.
+
+    Parameters
+    ----------
+    layer : str
+        One of the matrix keys, or "overall" to sum all layers.
+    matrices : dict[str, np.ndarray]
+        Mapping layer -> contact matrix (square, len(groups) x len(groups)).
+    groups : list[str]
+        Age group labels (order used for both axes).
+    title : str
+        Chart title.
+    facecolor : str
+        Background color.
+    cmap : str
+        Color palette name; supports "mako" (custom), or use any Altair/Vega scheme
+        like "viridis", "inferno", etc.
+    """
+
+    # --- choose matrix (layer or overall) ---
+    if layer == "overall":
+        matrix = np.sum(np.stack(list(matrices.values()), axis=0), axis=0)
+    else:
+        matrix = np.asarray(matrices[layer])
+
+    # --- tidy dataframe ---
+    n = len(groups)
+    assert matrix.shape == (n, n), "Matrix shape must match groups length."
+    df = pd.DataFrame(
+        [{"Contacting": groups[i], "Contacted": groups[j], "Value": float(matrix[i, j])}
+         for i in range(n) for j in range(n)]
+    )
+
+    # --- palette: approximate seaborn 'mako' if requested ---
+    # (Altair doesn't ship 'mako'; we mimic it with a cool-to-warm teal-ish ramp)
+    mako_like = [
+        "#071b2c", "#0b2c3f", "#124657", "#1c6371", "#2a817f",
+        "#3fa08b", "#61bf96", "#8cddb0", "#bfeed0", "#e6f6ec"
+    ]
+    if isinstance(cmap, str) and cmap.lower() == "mako":
+        color_scale = alt.Scale(range=mako_like)
+    else:
+        # Use a named Vega scheme or custom list passed in
+        color_scale = alt.Scale(scheme=cmap) if isinstance(cmap, str) else alt.Scale(range=cmap)
+
+    # Domain from data range
+    vmin, vmax = float(df["Value"].min()), float(df["Value"].max())
+    color_scale.domain = [vmin, vmax]
+
+    # --- base heatmap with cell strokes to emulate grid ---
+    base = alt.Chart(df).properties(
+        width="container", height=450
+    ).encode(
+        x=alt.X("Contacted:N",
+                sort=groups,
+                axis=alt.Axis(
+                    title="Age Group (contacted)",
+                    labelAngle=45, labelColor="white", titleColor="white"
+                )),
+        y=alt.Y("Contacting:N",
+                sort=groups,
+                axis=alt.Axis(
+                    title="Age Group (contacting)",
+                    labelColor="white", titleColor="white"
+                )),
+    )
+
+    heat = base.mark_rect(
+        stroke="white", strokeWidth=0.5  # grid lines between cells
+    ).encode(
+        color=alt.Color("Value:Q", scale=color_scale, legend=None),
+        tooltip=[
+            alt.Tooltip("Contacting:N"),
+            alt.Tooltip("Contacted:N"),
+            alt.Tooltip("Value:Q", format=".2f"),
+        ],
+    )
+
+    # --- annotation layer (values in cells) ---
+    text = base.mark_text(
+        color="white", fontSize=10
+    ).encode(
+        text=alt.Text("Value:Q", format=".2f")
+    )
+
+    chart = (heat + text).properties(
+        title=alt.TitleParams(text=title, color="white", anchor="start", fontSize=14)
+    ).configure_axis(
+        grid=False,           # no default grid (we draw cell strokes instead)
+        domain=False,         # remove axis spines
+        tickOpacity=0.0,      # hide ticks
+    ).configure_view(
+        strokeWidth=0         # no outer border
+    ).configure(
+        background=facecolor  # dark background
+    )
+
+    st.altair_chart(chart, use_container_width=True)
+
+
 def plot_contact_matrix(ax, layer, matrices, groups, title, facecolor="#0c1019", cmap="mako"):
     """Plot the contact matrix"""
 
