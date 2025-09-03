@@ -292,13 +292,6 @@ with st.sidebar.form("sim_cfg"):
     if apply_cfg:
         invalidate_results()
 
-    if st.sidebar.button("🔄 Reset all"):
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
-        st.experimental_rerun()
-
-
-
 # ---------- MAIN ----------
 st.title("Epydemix Simulation Dashboard")
 run_button = st.button("Run Simulation")
