@@ -576,34 +576,17 @@ else:
         plot_population(population, show_percent)
 
     if st.session_state.active_tab == "Contacts":
-        c1, c2 = st.columns([1,1])
-        with c1:
-            contact = st.selectbox(
+        contact = st.selectbox(
                 "Contact Layer",
                 ["overall"] + LAYER_NAMES,
                 index=0,
                 key="p2_layer"
             )
-
-        # Build DataFrame for export
-        df_mat = contact_matrix_df(contact, population.contact_matrices, population.Nk_names)
-
-        with c2:
-     
-            st.write("")
-            st.download_button(
-                label="⬇️ Download matrix as CSV",
-                data=df_mat.round(3).to_csv(index=True),
-                file_name=f"{country_name}_contact_matrix_{contact}.csv",
-                mime="text/csv",
-            )
-
+        
         plot_contact_matrix(contact, population.contact_matrices, population.Nk_names)
 
-        # Build the DataFrame backing the current visualization
-        df_mat = contact_matrix_df(contact, population.contact_matrices, population.Nk_names)
-
         # Offer CSV download
+        df_mat = contact_matrix_df(contact, population.contact_matrices, population.Nk_names)
         st.download_button(
             label="⬇️ Download matrix as CSV",
             data=df_mat.round(3).to_csv(index=True),      # keep row labels
