@@ -102,7 +102,7 @@ with st.sidebar.form("sim_cfg"):
                     "End day",
                     min_value=int(st.session_state[f"{sel}_start"]), 
                     max_value=int(simulation_days_v),
-                    value=st.session_state[f"{sel}_end"],
+                    value=int(st.session_state[f"{sel}_end"]),
                     step=1,
                     key=f"{sel}_end"
                 )
