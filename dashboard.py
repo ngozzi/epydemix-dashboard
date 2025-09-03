@@ -109,7 +109,7 @@ with st.sidebar.form("sim_cfg"):
 
             st.slider(
                 "Reduction of contacts (%)",
-                min_value=0, max_value=100,
+                min_value=float(0), max_value=float(100),
                 value=float(st.session_state[f"{sel}_red"]),
                 step=1,
                 key=f"{sel}_red",
