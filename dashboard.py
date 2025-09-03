@@ -257,8 +257,26 @@ else:
     )
 
     if st.session_state.active_tab == "Compartments":
-        compartment = st.selectbox("Compartment", m.compartments, index=int(np.where(np.array(m.compartments) == "Infected")[0][0]), key="p1_comp")
-        age_group   = st.selectbox("Age group", ["total", "0-4", "5-19", "20-49", "50-64", "65+"], index=0, key="p1_age")
+        #compartment = st.selectbox("Compartment", m.compartments, index=int(np.where(np.array(m.compartments) == "Infected")[0][0]), key="p1_comp")
+        #age_group   = st.selectbox("Age group", ["total", "0-4", "5-19", "20-49", "50-64", "65+"], index=0, key="p1_age")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            compartment = st.selectbox(
+                "Compartment",
+                m.compartments,
+                index=int(np.where(np.array(m.compartments) == "Infected")[0][0]),
+                key="p1_comp"
+            )
+
+        with col2:
+            age_group = st.selectbox(
+                "Age group",
+                ["total", "0-4", "5-19", "20-49", "50-64", "65+"],
+                index=0,
+                key="p1_age"
+            )
+
         show_median = st.checkbox("Show median", value=True, key="p1_med")
         plot_compartments_traj(trj, compartment, age_group, show_median)
 
