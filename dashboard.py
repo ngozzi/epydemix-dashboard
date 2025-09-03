@@ -6,7 +6,7 @@ from epydemix.utils import compute_simulation_dates
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-from visualization import plot_compartments_traj, plot_contact_matrix, plot_contact_intensity, plot_population
+from visualization import plot_compartments_traj, plot_contact_matrix, plot_contact_intensity, plot_population, plot_contact_intensity_native
 from utils import invalidate_results, load_locations
 from compute_statistics import compute_attack_rate, compute_peak_size, compute_peak_time, compute_endemic_state
 
@@ -333,9 +333,10 @@ else:
         st.pyplot(fig)
 
     if st.session_state.active_tab == "Interventions":
-        fig, ax = plt.subplots(dpi=600)
-        fig.set_facecolor(facecolor)
-        plot_contact_intensity(ax, rhos)
-        st.pyplot(fig)
+        #fig, ax = plt.subplots(dpi=600)
+        #fig.set_facecolor(facecolor)
+        #plot_contact_intensity(ax, rhos)
+        #st.pyplot(fig)
+        plot_contact_intensity_native(rhos)
 
 

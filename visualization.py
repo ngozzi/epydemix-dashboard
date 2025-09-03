@@ -1,6 +1,8 @@
 import numpy as np
+import pandas as pd
 import seaborn as sns
-
+import altair as alt
+import streamlit as st
 
 def plot_compartments_traj(ax, trj, comp, age, show_median=True, facecolor="#0c1019", linecolor="#50f0d8"):
     """Plot the trajectory of a compartment over time"""
@@ -86,16 +88,56 @@ def plot_contact_intensity(ax, rhos, facecolor="#0c1019", linecolor="#50f0d8"):
                 linewidth=2, 
                 alpha = 1.0 if layer == "overall" else 0.5)
         
-    # annotate the name of the layers
+    # annotate the name of the layers avoiding overlaps of the text
     for layer, rho in rhos.items():
         ax.text(len(rho) - 1, rho[-1], layer, ha="right", va="bottom", color="white", fontsize=6)
 
-    ax.legend(facecolor=facecolor, labelcolor="white", frameon=False)
+    #ax.legend(facecolor=facecolor, labelcolor="white", frameon=False)
     ax.set_xlabel("Days", color="white")
     ax.set_ylabel("Contact Intensity (%)", color="white")
     for s in ax.spines.values():
         s.set_visible(False)
     ax.tick_params(width=0, colors="white")
     ax.grid(axis="y", linestyle="dotted", alpha=0.5, linewidth=0.5)
+
+
+def plot_contact_intensity_native(rhos: dict):
+    """
+    rhos: dict[layer_name -> list or np.array of values]
+    """
+    # convert to tidy DataFrame
+    data = []
+    for layer, rho in rhos.items():
+        for day, val in enumerate(rho):
+            data.append({"Day": day, "Layer": layer, "Value": val})
+    df = pd.DataFrame(data)
+
+    # base chart
+    base = alt.Chart(df).mark_line().encode(
+        x=alt.X("Day:Q", axis=alt.Axis(title="Days", labelColor="white", titleColor="white")),
+        y=alt.Y("Value:Q", axis=alt.Axis(title="Contact Intensity (%)", labelColor="white", titleColor="white")),
+        color=alt.condition(
+            alt.datum.Layer == "overall",
+            alt.value("#50f0d8"),   # main color
+            alt.value("grey")       # other layers
+        ),
+        opacity=alt.condition(
+            alt.datum.Layer == "overall",
+            alt.value(1.0),
+            alt.value(0.5)
+        )
+    ).properties(
+        width=600, height=400, background="#0c1019"
+    )
+
+    # add end-labels for each layer
+    last_points = df.groupby("Layer").tail(1)
+    text = alt.Chart(last_points).mark_text(align="left", dx=5, dy=-5, color="white", size=10).encode(
+        x="Day:Q", y="Value:Q", text="Layer"
+    )
+
+    chart = base + text
+    st.altair_chart(chart, use_container_width=True)
+
     
 
