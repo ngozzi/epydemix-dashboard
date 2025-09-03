@@ -6,7 +6,7 @@ from epydemix.utils import compute_simulation_dates
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-from visualization import plot_contact_matrix, plot_contact_intensity, plot_population, plot_compartments_traj, plot_contact_matrix_altair
+from visualization import plot_contact_intensity, plot_population, plot_compartments_traj, plot_contact_matrix
 from utils import invalidate_results, load_locations
 from compute_statistics import compute_attack_rate, compute_peak_size, compute_peak_time, compute_endemic_state
 
@@ -578,7 +578,7 @@ else:
 
     if st.session_state.active_tab == "Contacts":
         contact = st.selectbox("Contact Layer",  ["overall"] + LAYER_NAMES, index=0, key="p2_layer")
-        plot_contact_matrix_altair(contact, population.contact_matrices, population.Nk_names, "Contacts per day in " + contact)
+        plot_contact_matrix(contact, population.contact_matrices, population.Nk_names)
 
     if st.session_state.active_tab == "Interventions":
         plot_contact_intensity(rhos)
