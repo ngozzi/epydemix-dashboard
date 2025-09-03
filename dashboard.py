@@ -37,6 +37,9 @@ facecolor="#0c1019"
 # ---------- SIDEBAR ----------
 st.sidebar.title("Configuration")
 with st.sidebar.form("sim_cfg"):
+
+    st.markdown("### Simulation & Model Settings")
+
     with st.expander("Simulation Parameters", expanded=True):
         model_type = st.selectbox("Model Type", ["SIR", "SEIR", "SIS"], index=1)
         n_v = st.number_input("Number of simulations", 1, 100, 10)
@@ -67,7 +70,7 @@ with st.sidebar.form("sim_cfg"):
         pass
 
     # Interventions
-    st.markdown("### Interventions")
+    st.markdown("### Contact Interventions")
     
     # Hold all layer states in session_state so switching layer keeps values
     for layer in LAYER_NAMES:
@@ -76,13 +79,14 @@ with st.sidebar.form("sim_cfg"):
         st.session_state.setdefault(f"{layer}_end", simulation_days_v)
         st.session_state.setdefault(f"{layer}_red", 0)
 
-    sel = st.selectbox("Select a contact layer to edit", LAYER_NAMES, index=0)
+    #sel = st.selectbox("Select a contact layer to edit", LAYER_NAMES, index=0)
 
-    with st.expander(f"Configure: {sel}", expanded=True):
-        st.session_state[f"{sel}_en"]  = st.checkbox(f"Enable intervention on {sel}", value=st.session_state[f"{sel}_en"])
-        st.session_state[f"{sel}_start"] = st.number_input("Start day", 0, simulation_days_v, st.session_state[f"{sel}_start"], 1, key=f"in_{sel}_start")
-        st.session_state[f"{sel}_end"]   = st.number_input("End day", int(st.session_state[f"{sel}_start"]), simulation_days_v, st.session_state[f"{sel}_end"], 1, key=f"in_{sel}_end")
-        st.session_state[f"{sel}_red"]   = st.slider("Reduction of contacts (%)", 0, 100, st.session_state[f"{sel}_red"], 1, key=f"in_{sel}_red")
+    for sel in LAYER_NAMES:
+        with st.expander(f"Configure: {sel}", expanded=True):
+            st.session_state[f"{sel}_en"]  = st.checkbox(f"Enable intervention on {sel}", value=st.session_state[f"{sel}_en"])
+            st.session_state[f"{sel}_start"] = st.number_input("Start day", 0, simulation_days_v, st.session_state[f"{sel}_start"], 1, key=f"in_{sel}_start")
+            st.session_state[f"{sel}_end"]   = st.number_input("End day", int(st.session_state[f"{sel}_start"]), simulation_days_v, st.session_state[f"{sel}_end"], 1, key=f"in_{sel}_end")
+            st.session_state[f"{sel}_red"]   = st.slider("Reduction of contacts (%)", 0, 100, st.session_state[f"{sel}_red"], 1, key=f"in_{sel}_red")
 
     # build dict from session_state
     interventions = {}
@@ -101,7 +105,8 @@ with st.sidebar.form("sim_cfg"):
         else:
             st.write("No interventions enabled.")
 
-    with st.expander("Instructions", expanded=False):
+    st.markdown("### About")
+    with st.expander("Readme", expanded=False):
         st.markdown("""
         ### How to use this dashboard
 
