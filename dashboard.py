@@ -497,7 +497,6 @@ else:
             "R₀ overrides adjust the transmission rate, while infectious-period overrides adjust the recovery rate; both apply only within their day range."
         )
 
-
     if st.session_state.active_tab == "Compartments":
         col1, col2 = st.columns(2)
 
@@ -579,10 +578,6 @@ else:
 
     if st.session_state.active_tab == "Contacts":
         contact = st.selectbox("Contact Layer",  ["overall"] + LAYER_NAMES, index=0, key="p2_layer")
-        #fig, ax = plt.subplots(dpi=600)
-        #fig.set_facecolor(facecolor)
-        #plot_contact_matrix(ax, contact, population.contact_matrices, population.Nk_names, "Contacts per day in " + contact)
-        #st.pyplot(fig)
         plot_contact_matrix_altair(contact, population.contact_matrices, population.Nk_names, "Contacts per day in " + contact)
 
     if st.session_state.active_tab == "Interventions":
