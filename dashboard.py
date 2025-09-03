@@ -304,59 +304,6 @@ with st.sidebar.form("sim_cfg"):
 
 # ---------- MAIN ----------
 st.title("Epydemix Simulation Dashboard")
-# --- Welcome card (always visible) ---
-st.markdown(
-    """
-    <style>
-      .welcome-card{
-        background: linear-gradient(180deg, rgba(80,240,216,0.08), rgba(80,240,216,0.03));
-        border: 1px solid rgba(80,240,216,0.35);
-        border-radius: 14px;
-        padding: 18px 18px 10px 18px;
-        margin: 8px 0 16px 0;
-      }
-      .pill{
-        display:inline-block; padding:2px 8px; margin-right:6px;
-        border-radius:999px; font-size:12px; background:#152031; color:#dffdfa;
-        border:1px solid rgba(80,240,216,0.35);
-      }
-      .muted{color:#cbd5e1; font-size:14px;}
-      .steps li{margin-bottom:4px;}
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-
-st.markdown(
-    """
-    <div class="welcome-card">
-        <h3>👋 Welcome to <strong>Epydemix Simulation Dashboard</strong></h3>
-        <p class="muted">
-        Run stochastic SIR/SEIR/SIS simulations using country-specific population and contact matrices.
-        Configure model & interventions in the sidebar, then visualize epidemic trajectories and summary stats.
-        </p>
-        <div>
-        <span class="pill">SIR / SEIR / SIS</span>
-        <span class="pill">Contact interventions</span>
-        <span class="pill">Time-window overrides</span>
-        <span class="pill">Median & per-run exports</span>
-        </div>
-        <br/>
-        <ul class="steps">
-        <li><strong>Set parameters</strong> in the sidebar (model, days, R₀, periods, initial conditions).</li>
-        <li><strong>Add interventions</strong> by layer (home/school/work/community) with start–end–reduction.</li>
-        <li><strong>Optionally override</strong> R₀ or infectious period between two days.</li>
-        <li>Click <strong>Run Simulation</strong>, then explore tabs for plots & tables.</li>
-        </ul>
-        <p class="muted">
-        Need help? See <a href="https://epydemix.org" target="_blank">epydemix.org</a>.
-        </p>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
 
 run_button = st.button("Run Simulation")
 
@@ -466,8 +413,58 @@ ever_ran = st.session_state.get("ever_ran")
 if trj is None:
     if st.session_state.get("ever_ran"):
         st.warning("⚠️ Parameters changed. Click **Run Simulation** to update results.")
-    #else:
-        #st.info("👋 Configure settings in the sidebar and click **Run Simulation**.")
+    else:
+        # --- Welcome card ---
+        st.markdown(
+            """
+            <style>
+            .welcome-card{
+                background: linear-gradient(180deg, rgba(80,240,216,0.08), rgba(80,240,216,0.03));
+                border: 1px solid rgba(80,240,216,0.35);
+                border-radius: 14px;
+                padding: 18px 18px 10px 18px;
+                margin: 8px 0 16px 0;
+            }
+            .pill{
+                display:inline-block; padding:2px 8px; margin-right:6px;
+                border-radius:999px; font-size:12px; background:#152031; color:#dffdfa;
+                border:1px solid rgba(80,240,216,0.35);
+            }
+            .muted{color:#cbd5e1; font-size:14px;}
+            .steps li{margin-bottom:4px;}
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            """
+            <div class="welcome-card">
+                <h3>👋 Welcome to <strong>Epydemix Simulation Dashboard</strong></h3>
+                <p class="muted">
+                Run stochastic SIR/SEIR/SIS simulations using country-specific population and contact matrices.
+                Configure model & interventions in the sidebar, then visualize epidemic trajectories and summary stats.
+                </p>
+                <div>
+                <span class="pill">SIR / SEIR / SIS</span>
+                <span class="pill">Contact interventions</span>
+                <span class="pill">Time-window overrides</span>
+                <span class="pill">Median & per-run exports</span>
+                </div>
+                <br/>
+                <ul class="steps">
+                <li><strong>Set parameters</strong> in the sidebar (model, days, R₀, periods, initial conditions).</li>
+                <li><strong>Add interventions</strong> by layer (home/school/work/community) with start–end–reduction.</li>
+                <li><strong>Optionally override</strong> R₀ or infectious period between two days.</li>
+                <li>Click <strong>Run Simulation</strong>, then explore tabs for plots & tables.</li>
+                </ul>
+                <p class="muted">
+                Need help? See <a href="https://epydemix.org" target="_blank">epydemix.org</a>.
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
 else:
     population = st.session_state.get("population")
