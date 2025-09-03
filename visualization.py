@@ -100,6 +100,7 @@ def plot_contact_intensity(ax, rhos, facecolor="#0c1019", linecolor="#50f0d8"):
     ax.tick_params(width=0, colors="white")
     ax.grid(axis="y", linestyle="dotted", alpha=0.5, linewidth=0.5)
 
+
 def plot_contact_intensity_native(rhos: dict, facecolor="#0c1019"):
     """
     rhos: dict like {"overall": [...], "home":[...], "school":[...], "work":[...], "community":[...]}
@@ -112,52 +113,60 @@ def plot_contact_intensity_native(rhos: dict, facecolor="#0c1019"):
             rows.append({"Day": day, "Layer": layer, "Value": float(val)})
     df = pd.DataFrame(rows)
 
-    # ---- color domain/range (cyan for overall, nice colors for the rest)
-    # Ensure 'overall' is first in the legend order
+    # ---- colors (overall = cyan, others = nice palette)
     layers = list(rhos.keys())
     if "overall" in layers:
         layers = ["overall"] + [l for l in layers if l != "overall"]
 
-    nice_palette = ["#50f0d8",  # overall (cyan)
-                    "#ff7f0e",  # home
-                    "#1f77b4",  # school
-                    "#2ca02c",  # work
-                    "#d62728",  # community
-                    ]
+    nice_palette = [
+        "#50f0d8",  # overall (cyan)
+        "#ff7f0e",  # home
+        "#1f77b4",  # school
+        "#2ca02c",  # work
+        "#d62728"  # community
+    ]
     color_scale = alt.Scale(domain=layers, range=nice_palette[:len(layers)])
 
-    # columns for legend at bottom
     legend_cols = min(len(layers), 5)
 
     base = alt.Chart(df).encode(
-        x=alt.X("Day:Q", axis=alt.Axis(title="Days", labelColor="white", titleColor="white")),
+        x=alt.X("Day:Q", axis=alt.Axis(title="Days", labelColor="white", titleColor="white", grid=False)),
         y=alt.Y("Value:Q", axis=alt.Axis(title="Contact Intensity (%)", labelColor="white", titleColor="white")),
-        color=alt.Color("Layer:N",
-                        scale=color_scale,
-                        legend=alt.Legend(
-                            title=None,
-                            orient="bottom",
-                            direction="horizontal",
-                            columns=legend_cols,
-                            labelColor="white",
-                        )),
+        color=alt.Color(
+            "Layer:N",
+            scale=color_scale,
+            legend=alt.Legend(
+                title=None,
+                orient="bottom",
+                direction="horizontal",
+                columns=legend_cols,
+                labelColor="white",
+            ),
+        ),
         tooltip=[alt.Tooltip("Layer:N"), alt.Tooltip("Day:Q"), alt.Tooltip("Value:Q", format=".2f")],
     ).properties(
-        height=450,
-        background=facecolor
+        height=350,
+        background=facecolor,
     )
 
-    # thicker line for overall via size encoding (no size legend)
+    # ---- thicker cyan line for overall
     chart = base.mark_line().encode(
         size=alt.condition(
-            alt.datum.Layer == "overall",
-            alt.value(3.0),   # thicker for overall
-            alt.value(1.6)    # thinner for others
+            alt.datum.Layer == "overall", alt.value(3.0), alt.value(1.6)
         )
-    ).configure_axis(
-        grid=True, gridColor="white", gridOpacity=0.25, domain=False, tickColor="white", tickOpacity=0.0
+    )
+
+    # ---- style tweaks: dotted horizontal grid, no vertical grid, no spines
+    chart = chart.configure_axis(
+        grid=True,
+        gridColor="white",
+        gridOpacity=0.4,
+        gridDash=[2, 4],       # dotted
+        domain=False,          # remove axis lines (spines)
+        tickColor="white",
+        tickOpacity=0.0,       # hide tick marks
     ).configure_view(
-        strokeWidth=0
+        strokeWidth=0          # remove outer border
     )
 
     st.altair_chart(chart, use_container_width=True)
