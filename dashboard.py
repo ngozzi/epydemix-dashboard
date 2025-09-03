@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 from visualization import plot_contact_intensity, plot_population, plot_compartments_traj, plot_contact_matrix
-from utils import invalidate_results, load_locations, contact_matrix_df
+from utils import invalidate_results, load_locations, contact_matrix_df, build_compartment_timeseries_df
 from compute_statistics import compute_attack_rate, compute_peak_size, compute_peak_time, compute_endemic_state
 
 # ---------- LAYOUT ----------
@@ -517,6 +517,18 @@ else:
 
         show_median = st.checkbox("Show median", value=True, key="p1_med")
         plot_compartments_traj(trj, compartment, age_group, show_median)
+
+        # Build and offer the CSV download
+        export_df = build_compartment_timeseries_df(trj, compartment, age_group)
+        if export_df is not None:
+            st.download_button(
+                label="⬇️ Download CSV (median + runs)",
+                data=export_df.to_csv(index=False),
+                file_name=f"{compartment}_{age_group}_trajectories.csv",
+                mime="text/csv",
+            )
+        else:
+            st.info("No data available for the selected series.")
 
         if model_type != "SIS":
             # -------- 1) Attack rate (%) --------
