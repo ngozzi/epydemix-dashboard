@@ -4,6 +4,71 @@ import seaborn as sns
 import altair as alt
 import streamlit as st
 
+
+def plot_compartments_traj_altair(trj, comp, age, show_median=True,
+                                  facecolor="#0c1019", linecolor="#50f0d8"):
+    """
+    Altair version of plot_compartments_traj.
+    - trj: dict with keys like "I_total", "S_0-4", etc., each a (Nsim, T) array
+    - comp: compartment name, e.g. "Infected"
+    - age: age group name, e.g. "total"
+    """
+    key = f"{comp}_{age}"
+    if key not in trj:
+        st.warning(f"Missing: {key}")
+        return
+
+    series = np.asarray(trj[key])   # shape (Nsim, T)
+    T = series.shape[1]
+
+    # build tidy df with one row per sim per day
+    rows = []
+    for sim_id in range(series.shape[0]):
+        for t in range(T):
+            rows.append({"Day": t, "Simulation": sim_id, "Value": float(series[sim_id, t])})
+    df = pd.DataFrame(rows)
+
+    # base chart for trajectories
+    lines = (
+        alt.Chart(df)
+        .mark_line(strokeWidth=0.7, opacity=0.1, color="white")
+        .encode(
+            x=alt.X("Day:Q", axis=alt.Axis(title="Time", labelColor="white", titleColor="white")),
+            y=alt.Y("Value:Q", axis=alt.Axis(title=f"{comp} ({age})", labelColor="white", titleColor="white")),
+            detail="Simulation:N"
+        )
+        .properties(height=350, background=facecolor)
+    )
+
+    chart = lines
+
+    # add median trajectory if requested
+    if show_median:
+        med = np.median(series, axis=0)
+        df_med = pd.DataFrame({"Day": range(T), "Median": med})
+        median_line = (
+            alt.Chart(df_med)
+            .mark_line(strokeWidth=2, color=linecolor)
+            .encode(x="Day:Q", y="Median:Q")
+        )
+        chart = chart + median_line
+
+    # style axes & grid
+    chart = chart.configure_axis(
+        grid=True,
+        gridColor="white",
+        gridOpacity=0.4,
+        gridDash=[2, 4],   # dotted horizontal grid
+        domain=False,
+        tickColor="white",
+        tickOpacity=0.0
+    ).configure_view(
+        strokeWidth=0
+    )
+
+    st.altair_chart(chart, use_container_width=True)
+
+
 def plot_compartments_traj(ax, trj, comp, age, show_median=True, facecolor="#0c1019", linecolor="#50f0d8"):
     """Plot the trajectory of a compartment over time"""
     # guard: key might not exist
@@ -160,7 +225,5 @@ def plot_contact_intensity(rhos: dict, facecolor="#0c1019"):
             alt.datum.Layer == "overall", alt.value(3.0), alt.value(1.6)
         )
     )
-
-
 
     st.altair_chart(chart, use_container_width=True)
