@@ -38,7 +38,7 @@ def plot_compartments_traj_altair(
             "Value:Q",
             axis=alt.Axis(title=f"{comp} ({age})", labelColor="white", titleColor="white"),
         ),
-    ).properties(height=350)
+    ).properties(height=450)
 
     # All trajectories (thin, semi-transparent white)
     traj = base.mark_line(strokeWidth=0.7, opacity=0.10, color="white").encode(
@@ -56,8 +56,18 @@ def plot_compartments_traj_altair(
         )
         layers.append(median_line)
 
-    chart = alt.layer(*layers).configure(
-        background=facecolor 
+    chart = alt.layer(*layers).configure_axis(
+        grid=True,
+        gridColor="white",
+        gridOpacity=0.4,
+        gridDash=[2, 4],   # dotted horizontal grid
+        domain=False,      # remove spines
+        tickColor="white",
+        tickOpacity=0.0,   # hide tick marks
+    ).configure_view(
+        strokeWidth=0      # remove outer border
+    ).configure(
+        background=facecolor  # <- set background at TOP LEVEL
     )
 
     st.altair_chart(chart, use_container_width=True)
@@ -159,7 +169,6 @@ def plot_population_altair(population, show_percent=False, facecolor="#0c1019", 
         )
         .properties(height=450, background=facecolor)
     )
-
 
     st.altair_chart(chart, use_container_width=True)
 
