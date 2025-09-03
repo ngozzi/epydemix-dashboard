@@ -126,7 +126,7 @@ def plot_contact_matrix(layer, matrices, groups, facecolor="#0c1019", cmap="teal
 
     # --- annotation layer (values in cells) ---
     text = base.mark_text(
-        color="white", fontSize=12
+        color="white", fontSize=15
     ).encode(
         text=alt.Text("Value:Q", format=".2f")
     )
