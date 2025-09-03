@@ -304,6 +304,28 @@ with st.sidebar.form("sim_cfg"):
 
 # ---------- MAIN ----------
 st.title("Epydemix Simulation Dashboard")
+# --- Welcome card (always visible) ---
+st.markdown(
+    """
+    <style>
+      .welcome-card{
+        background: linear-gradient(180deg, rgba(80,240,216,0.08), rgba(80,240,216,0.03));
+        border: 1px solid rgba(80,240,216,0.35);
+        border-radius: 14px;
+        padding: 18px 18px 10px 18px;
+        margin: 8px 0 16px 0;
+      }
+      .pill{
+        display:inline-block; padding:2px 8px; margin-right:6px;
+        border-radius:999px; font-size:12px; background:#152031; color:#dffdfa;
+        border:1px solid rgba(80,240,216,0.35);
+      }
+      .muted{color:#cbd5e1; font-size:14px;}
+      .steps li{margin-bottom:4px;}
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 run_button = st.button("Run Simulation")
 
 if run_button:
