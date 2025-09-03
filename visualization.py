@@ -100,6 +100,7 @@ def plot_contact_matrix(layer, matrices, groups, facecolor="#0c1019", cmap="teal
         width="container", height=500
     ).encode(
         x=alt.X("Contacted:N",
+                labelAngle=0, 
                 sort=groups,
                 axis=alt.Axis(
                     title="Age Group (contacted)",
