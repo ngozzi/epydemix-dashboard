@@ -293,7 +293,9 @@ with st.sidebar.form("sim_cfg"):
         invalidate_results()
 
     st.markdown("---")
-    st.button("♻️ Reset all", on_click=reset_all_state)
+    reset = st.form_submit_button("♻️ Reset all")
+    if reset:
+        reset_all_state()
 
 # ---------- MAIN ----------
 st.title("Epydemix Simulation Dashboard")
