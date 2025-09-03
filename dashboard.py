@@ -296,10 +296,15 @@ if run_button:
             # Compute beta from R0 
             if param == "R0":
                 value_ovr = ovr["param"] * mu_v / spectral_radius
-            else: 
+                param_name = "transmission_rate"
+            elif param == "infectious_period": 
                 value_ovr = ovr["param"]
+                param_name = "recovery_rate" 
+            else: 
+                raise ValueError(f"Invalid parameter: {param}")
+            
             m.override_parameter(
-                parameter_name=param,
+                parameter_name=param_name,
                 start_date=start_date + timedelta(days=ovr["start_day"]),
                 end_date=start_date + timedelta(days=ovr["end_day"]),
                 value=value_ovr
