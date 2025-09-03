@@ -17,60 +17,64 @@ def plot_compartments_traj_altair(
         st.warning(f"Missing: {key}")
         return
 
-    series = np.asarray(trj[key])  # shape: (Nsim, T)
+    series = np.asarray(trj[key])  # (Nsim, T)
     if series.ndim != 2 or series.size == 0:
         st.warning(f"Invalid series for {key}")
         return
 
     Nsim, T = series.shape
-    df = pd.DataFrame(
-        {
-            "Day": np.tile(np.arange(T), Nsim),
-            "Simulation": np.repeat(np.arange(Nsim), T).astype(str),
-            "Value": series.reshape(-1).astype(float),
-        }
-    )
+    df = pd.DataFrame({
+        "Day": np.tile(np.arange(T), Nsim),
+        "Simulation": np.repeat(np.arange(Nsim), T).astype(str),
+        "Value": series.reshape(-1).astype(float),
+    })
 
-    # Base encodings; NOTE: no background here
+    # Base encodings (turn OFF vertical grid on X here)
     base = alt.Chart(df).encode(
-        x=alt.X("Day:Q", axis=alt.Axis(title="Time", labelColor="white", titleColor="white")),
+        x=alt.X(
+            "Day:Q",
+            axis=alt.Axis(title="Time", labelColor="white", titleColor="white", grid=False)  # no vertical grid
+        ),
         y=alt.Y(
             "Value:Q",
-            axis=alt.Axis(title=f"{comp} ({age})", labelColor="white", titleColor="white"),
+            axis=alt.Axis(title=f"{comp} ({age})", labelColor="white", titleColor="white")  # horizontal grid handled globally
         ),
     ).properties(height=450)
 
-    # All trajectories (thin, semi-transparent white)
+    # All trajectories: thin, semi-transparent white
     traj = base.mark_line(strokeWidth=0.7, opacity=0.10, color="white").encode(
         detail="Simulation:N"
     )
 
     layers = [traj]
 
+    # Median computed inside Altair so layering is safe
     if show_median:
-        # Compute median **inside Altair** so both layers share the same spec
         median_line = (
             base.transform_aggregate(Median="median(Value)", groupby=["Day"])
-            .mark_line(strokeWidth=2, color=linecolor)
-            .encode(y="Median:Q")
+                .mark_line(strokeWidth=2, color=linecolor)
+                .encode(y="Median:Q")
         )
         layers.append(median_line)
 
-    chart = alt.layer(*layers).configure_axis(
-        grid=True,
-        gridColor="white",
-        gridOpacity=0.4,
-        gridDash=[2, 4],   # dotted horizontal grid
-        domain=False,      # remove spines
-        tickColor="white",
-        tickOpacity=0.0,   # hide tick marks
-    ).configure_view(
-        strokeWidth=0      # remove outer border
-    ).configure(
-        background=facecolor  # <- set background at TOP LEVEL
+    chart = (
+        alt.layer(*layers)
+        # Match your other plots: dotted horizontal grid, no spines/border
+        .configure_axis(
+            grid=True,
+            gridColor="white",
+            gridOpacity=0.4,
+            gridDash=[2, 4],   # dotted horizontal grid
+            domain=False,      # remove axis spines
+            tickColor="white",
+            tickOpacity=0.0    # hide tick marks
+        )
+        .configure_view(strokeWidth=0)       # remove outer border
+        .configure(background=facecolor)     # dark background
     )
 
     st.altair_chart(chart, use_container_width=True)
+
 
 
 def plot_compartments_traj(ax, trj, comp, age, show_median=True, facecolor="#0c1019", linecolor="#50f0d8"):
@@ -128,25 +132,8 @@ def plot_contact_matrix(ax, layer, matrices, groups, title, facecolor="#0c1019",
     ax.grid(which='minor', color='w', linestyle='-', linewidth=0.5)
     ax.set_title(title, color="white", fontsize=10)
 
-def plot_population(ax, population, show_percent=False, facecolor="#0c1019", linecolor="#50f0d8"):
-    """Plot the population distribution"""
-    ax.set_facecolor(facecolor)
-    if show_percent:
-        ax.bar(population.Nk_names, 100 * population.Nk / population.Nk.sum(), color=linecolor, zorder=1)
-        ax.set_ylabel("Individuals (%)", color="white")
-    else:
-        ax.bar(population.Nk_names, population.Nk, color=linecolor, zorder=1)
-        ax.set_ylabel("Individuals (total)", color="white")
-    ax.set_xlabel("Age Group", color="white")
-    
-    for s in ax.spines.values():
-        s.set_visible(False)
-    ax.tick_params(width=0, colors="white")
-    ax.grid(axis="y", linestyle="dotted", alpha=0.5, linewidth=0.5, zorder=0)
 
-
-
-def plot_population_altair(population, show_percent=False, facecolor="#0c1019", linecolor="#50f0d8"):
+def plot_population(population, show_percent=False, facecolor="#0c1019", linecolor="#50f0d8"):
     """Plot population distribution with Altair."""
     df = pd.DataFrame({
         "Age Group": population.Nk_names,
@@ -171,7 +158,6 @@ def plot_population_altair(population, show_percent=False, facecolor="#0c1019", 
     )
 
     st.altair_chart(chart, use_container_width=True)
-
 
 
 def plot_contact_intensity(rhos: dict, facecolor="#0c1019"):
