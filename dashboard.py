@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 from visualization import plot_contact_intensity, plot_population, plot_compartments_traj, plot_contact_matrix
-from utils import invalidate_results, load_locations, contact_matrix_df, build_compartment_timeseries_df
+from utils import invalidate_results, load_locations, contact_matrix_df, build_compartment_timeseries_df, reset_all_state
 from compute_statistics import compute_attack_rate, compute_peak_size, compute_peak_time, compute_endemic_state
 
 # ---------- LAYOUT ----------
@@ -288,9 +288,12 @@ with st.sidebar.form("sim_cfg"):
                     - Interventions reduce contacts; **$R_0$ overrides** change **β**, **infectious-period overrides** change **μ**—only inside their chosen window.
                     """)
 
-    apply_cfg = st.form_submit_button("Apply settings")
+    apply_cfg = st.form_submit_button("⬇️ Apply settings")
     if apply_cfg:
         invalidate_results()
+
+    st.markdown("---")
+    st.button("♻️ Reset all", on_click=reset_all_state)
 
 # ---------- MAIN ----------
 st.title("Epydemix Simulation Dashboard")

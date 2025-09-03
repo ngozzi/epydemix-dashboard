@@ -37,3 +37,9 @@ def build_compartment_timeseries_df(trj, comp, age):
         df[f"Run_{i+1}"] = series[i]
 
     return df
+
+def reset_all_state():
+    """Full reset of the dashboard (clear *all* session state)."""
+    st.session_state.clear()
+    st.toast("🧼 Full reset: all settings restored to defaults.", icon="♻️")
+    st.rerun()
