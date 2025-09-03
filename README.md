@@ -24,6 +24,8 @@ You can try the dashboard now: [epydemix-dashboard.streamlit.app](https://epydem
 
 ## Installation
 
+To run the dahsboard locally you need to follow these steps.
+
 1. **Clone the repository:**
     ```bash
     git clone https://github.com/ngozzi/epydemix-dashboard.git
@@ -59,8 +61,6 @@ We welcome contributions and proposals for new features or extensions! If you'd 
 - Propose an extension or improvement, please open an [issue](https://github.com/ngozzi/epydemix-dashboard/issues) or [pull request](https://github.com/ngozzi/epydemix-dashboard/pulls).
 - Fork this repository and build your own dashboard for your simulation model — we encourage creative reuse!
 - Help with documentation, bug fixes, or general improvements.
-
-For guidance, see our [CONTRIBUTING](CONTRIBUTING.md) guidelines (or open an issue if you need help getting started).
 
 ## License
 
