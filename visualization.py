@@ -101,18 +101,6 @@ def plot_population_altair(population, show_percent=False, facecolor="#0c1019", 
         .properties(height=450, background=facecolor)
     )
 
-    cchart = chart.configure_axis(
-        grid=True,
-        gridColor="white",
-        gridOpacity=0.4,
-        gridWidth=0.5,
-        gridDash=[2, 4],       # dotted
-        domain=False,          # remove axis lines (spines)
-        tickColor="white",
-        tickOpacity=0.0,       # hide tick marks
-    ).configure_view(
-        strokeWidth=0          # remove outer border
-    )
 
     st.altair_chart(chart, use_container_width=True)
 
@@ -173,18 +161,6 @@ def plot_contact_intensity(rhos: dict, facecolor="#0c1019"):
         )
     )
 
-    # ---- style tweaks: dotted horizontal grid, no vertical grid, no spines
-    chart = chart.configure_axis(
-        grid=True,
-        gridColor="white",
-        gridOpacity=0.4,
-        gridWidth=0.5,
-        gridDash=[2, 4],       # dotted
-        domain=False,          # remove axis lines (spines)
-        tickColor="white",
-        tickOpacity=0.0,       # hide tick marks
-    ).configure_view(
-        strokeWidth=0          # remove outer border
-    )
+
 
     st.altair_chart(chart, use_container_width=True)
