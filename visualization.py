@@ -98,19 +98,20 @@ def plot_population_altair(population, show_percent=False, facecolor="#0c1019", 
             y=alt.Y("Value:Q", axis=alt.Axis(title=ylabel, labelColor="white", titleColor="white")),
             tooltip=["Age Group", alt.Tooltip("Value", format=".1f")]
         )
-        .properties(height=350, background=facecolor)
+        .properties(height=450, background=facecolor)
     )
 
-    chart = chart.configure_axis(
+    cchart = chart.configure_axis(
         grid=True,
         gridColor="white",
         gridOpacity=0.4,
-        gridDash=[2, 4],   # dotted horizontal grid
-        domain=False,      # no axis spines
+        gridWidth=0.5,
+        gridDash=[2, 4],       # dotted
+        domain=False,          # remove axis lines (spines)
         tickColor="white",
-        tickOpacity=0.0    # hide tick marks
+        tickOpacity=0.0,       # hide tick marks
     ).configure_view(
-        strokeWidth=0      # remove outer border
+        strokeWidth=0          # remove outer border
     )
 
     st.altair_chart(chart, use_container_width=True)
