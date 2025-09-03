@@ -448,7 +448,7 @@ else:
             df_ovr = pd.DataFrame(rows).sort_values(["Start day", "Parameter"])
             # Nice formatting
             fmt = {"Override value": "{:.2f}"}
-            st.dataframe(df_ovr.format(fmt), use_container_width=True)
+            st.dataframe(df_ovr.style.format(fmt), use_container_width=True)
         else:
             st.info("No parameter overrides enabled.")
 
