@@ -576,7 +576,7 @@ else:
         plot_population(population, show_percent)
 
     if st.session_state.active_tab == "Contacts":
-        c1, c2 = st.columns([2, 1])
+        c1, c2 = st.columns([1,1])
         with c1:
             contact = st.selectbox(
                 "Contact Layer",
