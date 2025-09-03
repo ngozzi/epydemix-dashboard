@@ -123,12 +123,11 @@ def plot_contact_intensity_native(rhos: dict, facecolor="#0c1019"):
                     "#1f77b4",  # school
                     "#2ca02c",  # work
                     "#d62728",  # community
-                    "#9467bd",  # extras if any
-                    "#8c564b"]
+                    ]
     color_scale = alt.Scale(domain=layers, range=nice_palette[:len(layers)])
 
     # columns for legend at bottom
-    legend_cols = min(len(layers), 4)
+    legend_cols = min(len(layers), 5)
 
     base = alt.Chart(df).encode(
         x=alt.X("Day:Q", axis=alt.Axis(title="Days", labelColor="white", titleColor="white")),
@@ -144,7 +143,7 @@ def plot_contact_intensity_native(rhos: dict, facecolor="#0c1019"):
                         )),
         tooltip=[alt.Tooltip("Layer:N"), alt.Tooltip("Day:Q"), alt.Tooltip("Value:Q", format=".2f")],
     ).properties(
-        height=350,
+        height=450,
         background=facecolor
     )
 
