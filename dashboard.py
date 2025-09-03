@@ -94,7 +94,7 @@ with st.sidebar.form("sim_cfg"):
                     min_value=0, max_value=simulation_days_v,
                     value=st.session_state[f"{sel}_start"],
                     step=1,
-                    key=f"in_{sel}_start",
+                    key=f"in_{sel}_start"
                 )
             with c2:
                 st.number_input(
@@ -102,7 +102,7 @@ with st.sidebar.form("sim_cfg"):
                     min_value=int(st.session_state[f"{sel}_start"]), max_value=simulation_days_v,
                     value=st.session_state[f"{sel}_end"],
                     step=1,
-                    key=f"in_{sel}_end",
+                    key=f"in_{sel}_end"
                 )
 
             st.slider(
