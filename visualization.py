@@ -112,27 +112,29 @@ def plot_contact_intensity_native(rhos: dict):
             rows.append({"Day": day, "Layer": layer, "Value": val})
     df = pd.DataFrame(rows)
 
+    # Define colors: cyan for overall, nice palette for others
+    palette = alt.Scale(
+        domain=list(rhos.keys()),
+        range=[
+            "#50f0d8",  # overall
+            "#ff7f0e",  # home
+            "#1f77b4",  # school
+            "#2ca02c",  # work
+            "#d62728",  # community
+        ][:len(rhos)]  # truncate to number of layers
+    )
+
     # Build chart
     chart = (
         alt.Chart(df)
-        .mark_line()
+        .mark_line(strokeWidth=2)
         .encode(
             x=alt.X("Day:Q", axis=alt.Axis(title="Days", labelColor="white", titleColor="white")),
             y=alt.Y("Value:Q", axis=alt.Axis(title="Contact Intensity (%)", labelColor="white", titleColor="white")),
-            color=alt.condition(
-                alt.datum.Layer == "overall",
-                alt.value("#50f0d8"),  # cyan for overall
-                alt.value("grey")      # grey for other layers
-            ),
-            opacity=alt.condition(
-                alt.datum.Layer == "overall",
-                alt.value(1.0),
-                alt.value(0.5)
-            ),
-            detail="Layer:N",
+            color=alt.Color("Layer:N", scale=palette, legend=alt.Legend(title="Layer")),
             tooltip=["Layer", "Day", alt.Tooltip("Value", format=".2f")]
         )
-        .properties(height=300, background="#0c1019")
+        .properties(height=350, background="#0c1019")
     )
 
     st.altair_chart(chart, use_container_width=True)
