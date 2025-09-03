@@ -524,7 +524,7 @@ else:
             st.download_button(
                 label="⬇️ Download CSV (median + runs)",
                 data=export_df.to_csv(index=False),
-                file_name=f"{compartment}_{age_group}_trajectories.csv",
+                file_name=f"{country_name}_{compartment}_{age_group}_trajectories.csv",
                 mime="text/csv",
             )
         else:
