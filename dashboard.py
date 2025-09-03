@@ -326,6 +326,59 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
+col_w1, col_w2 = st.columns([2, 1], vertical_alignment="center")
+
+with col_w1:
+    st.markdown(
+        """
+        <div class="welcome-card">
+          <h3>👋 Welcome to <strong>Epydemix Simulation Dashboard</strong></h3>
+          <p class="muted">
+            Run stochastic SIR/SEIR/SIS simulations using country-specific population and contact matrices.
+            Configure model & interventions in the sidebar, then visualize epidemic trajectories and summary stats.
+          </p>
+          <div>
+            <span class="pill">SIR / SEIR / SIS</span>
+            <span class="pill">Contact interventions</span>
+            <span class="pill">Time-window overrides</span>
+            <span class="pill">Median & per-run exports</span>
+          </div>
+          <br/>
+          <ul class="steps">
+            <li><strong>Set parameters</strong> in the sidebar (model, days, R₀, periods, initial conditions).</li>
+            <li><strong>Add interventions</strong> by layer (home/school/work/community) with start–end–reduction.</li>
+            <li><strong>Optionally override</strong> R₀ or infectious period between two days.</li>
+            <li>Click <strong>Run Simulation</strong>, then explore tabs for plots & tables.</li>
+          </ul>
+          <p class="muted">
+            Need help? See <a href="https://epydemix.org" target="_blank">epydemix.org</a>.
+          </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+with col_w2:
+    # A small "current config" glance using your live variables
+    st.markdown("**Current selection**")
+    st.dataframe(
+        pd.DataFrame(
+            [
+                ("Model", model_type),
+                ("Country", country_name),
+                ("Days", simulation_days_v),
+                ("Simulations", n_v),
+                ("R₀ (base)", f"{R0_v:.2f}"),
+                ("Infectious period", f"{infectious_period_v:.2f} d"),
+            ]
+            + ([("Incubation period", f"{incubation_period_v:.2f} d")] if model_type == "SEIR" else []),
+            columns=["Setting", "Value"],
+        ),
+        hide_index=True,
+        use_container_width=True,
+    )
+
 run_button = st.button("Run Simulation")
 
 if run_button:
