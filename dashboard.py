@@ -74,7 +74,6 @@ with st.sidebar.form("sim_cfg"):
             initial_immunity_percentage_v = st.number_input("Initial Immunity Percentage", 0.0, 100.0, 0.0, 1.0)
 
     # Interventions
-    # Interventions
     st.markdown("### 🤝 Contact Interventions")
 
     # Initialize once
@@ -147,7 +146,6 @@ with st.sidebar.form("sim_cfg"):
                 st.write(f"**{k}**: days {v['start']}–{v['end']}, reduction {int(v['reduction']*100)}%")
         else:
             st.write("No interventions enabled.")
-
 
     # -------- Parameter Overrides --------
     st.markdown("### 🦠 Parameter Overrides")
@@ -290,10 +288,15 @@ with st.sidebar.form("sim_cfg"):
                     - Interventions reduce contacts; **$R_0$ overrides** change **β**, **infectious-period overrides** change **μ**—only inside their chosen window.
                     """)
 
-
     apply_cfg = st.form_submit_button("Apply settings")
     if apply_cfg:
         invalidate_results()
+
+    if st.sidebar.button("🔄 Reset all"):
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
+        st.experimental_rerun()
+
 
 
 # ---------- MAIN ----------
