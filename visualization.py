@@ -38,7 +38,7 @@ def plot_compartments_traj(
     ).properties(height=450)
 
     # All trajectories: thin, semi-transparent white
-    traj = base.mark_line(strokeWidth=0.7, opacity=0.10, color="white").encode(
+    traj = base.mark_line(strokeWidth=0.7, opacity=0.15, color="white").encode(
         detail="Simulation:N"
     )
 
