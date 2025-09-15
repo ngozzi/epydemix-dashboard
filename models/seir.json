@@ -1,0 +1,42 @@
+{
+    "name": "SEIR",
+    "compartments": ["Susceptible", "Exposed", "Infected", "Recovered"],
+  
+    "parameters": {
+      "R0":                 {"default": 2.5, "min": 0.0, "max": 20.0, "step": 0.1, "dtype": "float"},
+      "infectious_period":  {"default": 4.0, "min": 1.0, "max": 20.0, "step": 0.5, "dtype": "float"},
+      "incubation_period":  {"default": 3.0, "min": 1.0, "max": 20.0, "step": 0.5, "dtype": "float"}
+    },
+  
+    "derived_parameters": {
+      "mu":   "1.0 / infectious_period",
+      "gamma":"1.0 / incubation_period",
+      "beta": "R0 * mu / spectral_radius"
+    },
+  
+    "engine_parameters": {
+      "beta":  "transmission_rate",
+      "mu":    "recovery_rate",
+      "gamma": "incubation_rate"
+    },
+  
+    "transitions": [
+      {"source": "Susceptible", "target": "Exposed",   "type": "mediated",    "params": ["beta", "Infected"]},
+      {"source": "Exposed",     "target": "Infected",  "type": "spontaneous", "params": ["gamma"]},
+      {"source": "Infected",    "target": "Recovered", "type": "spontaneous", "params": ["mu"]}
+    ], 
+
+    "initial_conditions": {
+      "Susceptible": 99.8,
+      "Exposed": 0.1,
+      "Infected": 0.1,
+      "Recovered": 0.0
+    }, 
+
+    "param_display_names": {
+      "R0": "$R_0$",
+      "incubation_period": "Incubation period (days)",
+      "infectious_period": "Infectious period (days)"
+    }
+  }
+  

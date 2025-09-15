@@ -1,0 +1,31 @@
+{
+    "name": "SIR",
+    "compartments": ["Susceptible", "Infected", "Recovered"],
+    "parameters": {
+      "R0":                 {"default": 2.5, "min": 0.0, "max": 20.0, "step": 0.1, "dtype": "float"},
+      "infectious_period":  {"default": 4.0, "min": 1.0, "max": 20.0, "step": 0.5, "dtype": "float"}
+    },
+    "derived_parameters": {
+      "mu":   "1.0 / infectious_period",
+      "beta": "R0 * mu / spectral_radius"
+    },
+    "engine_parameters": {
+      "beta": "transmission_rate",
+      "mu":   "recovery_rate"
+    },
+    "transitions": [
+      {"source": "Susceptible", "target": "Infected",  "type": "mediated",    "params": ["beta", "Infected"]},
+      {"source": "Infected",    "target": "Recovered", "type": "spontaneous", "params": ["mu"]}
+    ],
+    "initial_conditions": {
+      "Susceptible": 99.9,
+      "Infected": 0.1,
+      "Recovered": 0.0
+    }, 
+    "param_display_names": {
+      "R0": "$R_0$",
+      "infectious_period": "Infectious period (days)"
+    }
+  }
+
+  
