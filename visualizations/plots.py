@@ -8,6 +8,7 @@ import streamlit as st
 def plot_compartments_traj(
     trj, comp, age, show_median=True, facecolor="#0c1019", linecolor="#50f0d8"
 ):
+    """Plot a compartment trajectory."""
     key = f"{comp}_{age}"
     if key not in trj:
         st.warning(f"Missing: {key}")
@@ -72,7 +73,9 @@ def plot_compartments_traj(
     st.altair_chart(chart, use_container_width=True)
 
 
-def plot_contact_matrix(layer, matrices, groups, facecolor="#0c1019", cmap="teals"):
+def plot_contact_matrix(
+    layer, matrices, groups, facecolor="#0c1019", cmap="teals"
+):
     """Altair heatmap of a contact matrix with per-cell annotations."""
 
     # --- choose matrix (layer or overall) ---
@@ -144,12 +147,15 @@ def plot_contact_matrix(layer, matrices, groups, facecolor="#0c1019", cmap="teal
     st.altair_chart(chart, use_container_width=True)
 
 
-def plot_population(population, show_percent=False, facecolor="#0c1019", linecolor="#50f0d8"):
+def plot_population(
+    population, show_percent=False, facecolor="#0c1019", linecolor="#50f0d8", order=["0-4", "5-19", "20-49", "50-64", "65+"]
+):
     """Plot population distribution with Altair."""
     df = pd.DataFrame({
         "Age Group": population.Nk_names,
         "Count": population.Nk
     })
+    
     if show_percent:
         df["Value"] = 100 * df["Count"] / df["Count"].sum()
         ylabel = "Individuals (%)"
@@ -161,7 +167,7 @@ def plot_population(population, show_percent=False, facecolor="#0c1019", linecol
         alt.Chart(df)
         .mark_bar(color=linecolor)
         .encode(
-            x=alt.X("Age Group:N", axis=alt.Axis(title="Age Group", labelColor="white", titleColor="white")),
+            x=alt.X("Age Group:O", sort=order, axis=alt.Axis(title="Age Group", labelColor="white", titleColor="white")),
             y=alt.Y("Value:Q", axis=alt.Axis(title=ylabel, labelColor="white", titleColor="white")),
             tooltip=["Age Group", alt.Tooltip("Value", format=".1f")]
         )
@@ -171,8 +177,12 @@ def plot_population(population, show_percent=False, facecolor="#0c1019", linecol
     st.altair_chart(chart, use_container_width=True)
 
 
-def plot_contact_intensity(rhos: dict, facecolor="#0c1019"):
+def plot_contact_intensity(
+    rhos: dict, facecolor="#0c1019"
+):
     """
+    Plot contact intensity over time.
+
     rhos: dict like {"overall": [...], "home":[...], "school":[...], "work":[...], "community":[...]}
     """
 
