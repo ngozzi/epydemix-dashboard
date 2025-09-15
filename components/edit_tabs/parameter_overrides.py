@@ -27,14 +27,14 @@ def render_parameter_overrides_tab(config):
                     max_value=730,
                     value=st.session_state.get(f"{pname}_ovr_start", 0),
                     step=1,
-                    key=f"{pname}_ovr_start",
+                    key=f"{pname}_ovr_start"
                 )
             with c2:
                 st.number_input(
                     "End day",
                     min_value=int(st.session_state.get(f"{pname}_ovr_start", 0)),
                     max_value=730,
-                    value=st.session_state.get(f"{pname}_ovr_end", 730),
+                    value=st.session_state.get(f"{pname}_ovr_end", 250),
                     step=1,
                     key=f"{pname}_ovr_end",
                 )

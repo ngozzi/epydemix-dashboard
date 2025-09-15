@@ -7,7 +7,7 @@
     },
     "derived_parameters": {
       "mu":   "1.0 / infectious_period",
-      "beta": "R0 * mu / spectral_radius"
+      "beta": "R0 * (1 / infectious_period) / spectral_radius"
     },
     "engine_parameters": {
       "beta": "transmission_rate",
@@ -23,7 +23,7 @@
       "Recovered": 0.0
     }, 
     "param_display_names": {
-      "R0": "$R_0$",
+      "R0": "R₀",
       "infectious_period": "Infectious period (days)"
     }
   }

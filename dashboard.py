@@ -14,6 +14,7 @@ from utils.config_engine import (
     compute_spectral_radius, eval_derived,
     build_epimodel_from_config, compute_override_value
 )
+from utils.simulation import run_simulation
 from components.welcome_card import show_welcome_card
 from components.layout import show_sidebar_logo, show_fixed_logo
 from streamlit_js_eval import streamlit_js_eval
@@ -23,6 +24,10 @@ from components.edit_tabs.contact_interventions import render_contact_interventi
 from components.edit_tabs.parameter_overrides import render_parameter_overrides_tab
 from components.edit_tabs.initial_conditions import render_initial_conditions_tab
 from components.edit_tabs.simulation_settings import render_simulation_settings_tab
+from components.viz_tabs.summary import render_summary_tab
+from components.viz_tabs.population import render_population_tab
+from components.viz_tabs.contacts import render_contacts_tab
+from components.viz_tabs.compartments import render_compartments_tab
 
 
 # ---------- LAYOUT ----------
@@ -60,6 +65,7 @@ else:
     # --- Run Simulations button ---
     if st.button("🚀 Run Simulations"):
         st.session_state.edit_mode = False
+        run_simulation(start_date)
     
     # --- Editing Mode toggle ---
     edit_mode_toggle = st.toggle("✏️ Editing Mode", key="edit_mode", value=True, help="Switch to editing mode to modify the model and the simulation settings.")
@@ -92,24 +98,25 @@ else:
     else:
 
         # ---- Visualization mode ----
-        viz_tabs = st.tabs(["Summary", "Compartments", "Population", "Contacts", "Interventions"])
-
-        with viz_tabs[0]:
-            st.subheader("📊 Summary")
-            st.info("Simulation summary will appear here.")
-
-        with viz_tabs[1]:
-            st.subheader("🧩 Compartments")
-            st.info("Compartment trajectories will appear here.")
-
-        with viz_tabs[2]:
-            st.subheader("👥 Population")
-            st.info("Population distribution will appear here.")
-
-        with viz_tabs[3]:
-            st.subheader("🔗 Contacts")
-            st.info("Contact matrices will appear here.")
-
-        with viz_tabs[4]:
+        # Tab selection with radio buttons (fixed state handling)
+        tab_options = ["Summary", "Compartments", "Population", "Contact Matrices", "Interventions"]
+        selected_tab = st.radio(
+            "Visualization Tabs",
+            options=tab_options,
+            key="tab_radio_buttons",
+            horizontal=True,
+            label_visibility="collapsed"
+        )
+        
+        # Render content based on selected tab
+        if selected_tab == "Summary":
+            render_summary_tab()
+        elif selected_tab == "Compartments":
+            render_compartments_tab()
+        elif selected_tab == "Population":
+            render_population_tab()
+        elif selected_tab == "Contact Matrices":
+            render_contacts_tab()
+        elif selected_tab == "Interventions":
             st.subheader("🤝 Interventions")
             st.info("Intervention plots will appear here.")

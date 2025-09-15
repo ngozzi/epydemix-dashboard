@@ -11,7 +11,7 @@
     "derived_parameters": {
       "mu":   "1.0 / infectious_period",
       "gamma":"1.0 / incubation_period",
-      "beta": "R0 * mu / spectral_radius"
+      "beta": "R0 * (1 / infectious_period) / spectral_radius"
     },
   
     "engine_parameters": {
@@ -34,7 +34,7 @@
     }, 
 
     "param_display_names": {
-      "R0": "$R_0$",
+      "R0": "R₀",
       "incubation_period": "Incubation period (days)",
       "infectious_period": "Infectious period (days)"
     }

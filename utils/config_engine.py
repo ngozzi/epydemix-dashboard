@@ -118,7 +118,7 @@ def build_epimodel_from_config(cfg: ModelConfig, derived: Dict[str, float], popu
             source=tr["source"],
             target=tr["target"],
             kind=tr["type"],
-            params=tuple(resolved)
+            params=tuple(resolved) if tr["type"] == "mediated" else resolved[0]
         )
     return m
 
