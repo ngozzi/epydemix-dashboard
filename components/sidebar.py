@@ -1,6 +1,7 @@
 import streamlit as st
 from utils.helpers import load_locations, reset_all_state
 from utils.config_engine import load_model_config_from_file, load_model_config_from_json_bytes
+from .about import get_about_message
 
 BUILTINS = {"SEIR": "models/seir.json", "SIR": "models/sir.json", "SIS": "models/sis.json"}
 
@@ -30,7 +31,7 @@ def render_sidebar():
             )
         # TODO: add upload of population file
         
-        create_btn = st.form_submit_button("🚀 Create Model")
+        create_btn = st.form_submit_button("🚀 Create Model", use_container_width=True)
         if create_btn:
             # TODO: add reset of states and edit tabs when creating a new model
             if model_uploaded_config is not None:
@@ -39,3 +40,7 @@ def render_sidebar():
                 st.session_state.model_config = load_model_config_from_file(BUILTINS[model_choice])
             st.session_state.country_name = country_name
             st.session_state.model_loaded = True
+
+        st.markdown("### 📖 About")
+        with st.expander("Readme", expanded=False):
+            st.markdown(get_about_message())
