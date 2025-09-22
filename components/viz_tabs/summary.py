@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 def render_summary_tab():
     """Render the simulation summary tab with configuration and results tables."""
     
-    if "simulation_results" not in st.session_state:
+    if st.session_state.simulation_results is None:
         st.info("Run a simulation first to see the summary.")
         return
     
@@ -14,8 +14,8 @@ def render_summary_tab():
     # Get simulation data
     model_config = st.session_state.model_config
     country_name = st.session_state.country_name
-    n_v = st.session_state.n_v
-    simulation_days_v = st.session_state.simulation_days_v
+    n_v = st.session_state.n_sims
+    simulation_days_v = st.session_state.sim_days
     param_values = st.session_state.param_values
     interventions = st.session_state.get("interventions", {})
     parameter_overrides = st.session_state.get("parameter_overrides", {})

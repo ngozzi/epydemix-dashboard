@@ -93,8 +93,6 @@ def run_simulation(start_date):
                 end_date=start_date + timedelta(days=override["end_day"]),
                 value=override_value
             )
-
-        print(model)
         
         # 7. Convert initial conditions to proper format
         initial_conditions_dict = convert_initial_conditions_to_arrays(
@@ -104,10 +102,11 @@ def run_simulation(start_date):
         )
         
         # 8. Run simulations
-        print(initial_conditions_dict)
-        end_date = start_date + timedelta(days=st.session_state.simulation_days_v)
+        Nsim = int(st.session_state["n_sims"])
+        sim_days = int(st.session_state["sim_days"])
+        end_date = start_date + timedelta(days=sim_days)
         results = model.run_simulations(
-            Nsim=st.session_state.n_v,
+            Nsim=Nsim,
             start_date=start_date,
             end_date=end_date,
             initial_conditions_dict=initial_conditions_dict

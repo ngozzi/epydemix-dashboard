@@ -8,7 +8,7 @@ from utils.stats import compute_attack_rate, compute_peak_size, compute_peak_tim
 def render_compartments_tab():
     """Render the compartments visualization tab."""
     
-    if "simulation_results" not in st.session_state:
+    if st.session_state.simulation_results is None:
         st.info("Run a simulation first to see compartment trajectories.")
         return
     

@@ -5,7 +5,7 @@ from visualizations.plots import plot_population
 def render_population_tab():
     """Render the population visualization tab."""
     
-    if "simulation_results" not in st.session_state:
+    if st.session_state.simulation_results is None:
         st.info("Run a simulation first to see population visualization.")
         return
     

@@ -8,6 +8,7 @@ import os
 from datetime import datetime, timedelta
 from visualizations.plots import plot_contact_intensity, plot_population, plot_compartments_traj, plot_contact_matrix
 from utils.helpers import invalidate_results, load_locations, contact_matrix_df, build_compartment_timeseries_df, reset_all_state
+from utils.session_state_init import init_session_state
 from utils.stats import compute_attack_rate, compute_peak_size, compute_peak_time, compute_endemic_state
 from utils.config_engine import (
     load_model_config_from_file, load_model_config_from_json_bytes,
@@ -29,6 +30,9 @@ from components.viz_tabs.population import render_population_tab
 from components.viz_tabs.contacts import render_contacts_tab
 from components.viz_tabs.compartments import render_compartments_tab
 
+from utils.session_state_init import init_simulation_settings
+
+init_simulation_settings()
 
 # ---------- LAYOUT ----------
 show_sidebar_logo()
@@ -45,6 +49,9 @@ render_sidebar()
 
 # ---------- MAIN ----------
 st.title("Epydemix Simulation Dashboard")
+
+# ---------- SESSION STATE ----------
+init_session_state()
 
 # Show welcome card only if model not yet loaded
 if not st.session_state.model_loaded:
@@ -74,7 +81,7 @@ else:
         st.write("Navigate through the tabs to edit the model and the simulation settings. In case of changes, click the **Run Simulations** button to run the model with the new settings.")
         # --- Editing mode ---
         tabs = st.tabs(["Model Parameters", "Initial Conditions", "Simulation Settings", "Contact Interventions", "Parameter Overrides"])
-        
+
         # --- Tab 1: Model Parameters ---
         with tabs[0]:
             render_model_params_tab()
