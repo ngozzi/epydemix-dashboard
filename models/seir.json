@@ -4,8 +4,8 @@
   
     "parameters": {
       "R0":                 {"default": 2.5, "min": 0.0, "max": 20.0, "step": 0.1, "dtype": "float"},
-      "infectious_period":  {"default": 4.0, "min": 1.0, "max": 20.0, "step": 0.5, "dtype": "float"},
-      "incubation_period":  {"default": 3.0, "min": 1.0, "max": 20.0, "step": 0.5, "dtype": "float"}
+      "infectious_period":  {"default": 4.0, "min": 1.0, "max": 20.0, "step": 0.1, "dtype": "float"},
+      "incubation_period":  {"default": 3.0, "min": 1.0, "max": 20.0, "step": 0.1, "dtype": "float"}
     },
   
     "derived_parameters": {

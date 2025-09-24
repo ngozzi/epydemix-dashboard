@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import numexpr as ne
-
+import streamlit as st
 from epydemix.model import EpiModel
 
 # ----------------- Data structures -----------------
@@ -125,34 +125,34 @@ def build_epimodel_from_config(cfg: ModelConfig, derived: Dict[str, float], popu
 # ----------------- Sidebar rendering helpers -----------------
 def render_config_params(cfg: ModelConfig, prefix: str = "param_") -> Dict[str, float]:
     """Render sliders for 'parameters' and return dict of chosen values."""
-    import streamlit as st
     chosen: Dict[str, float] = {}
-    for pname, spec in cfg.parameters.items():
-        dtype = spec.get("dtype", "float")
-        label = cfg.param_display_names[pname]
-        widget_key = f"{prefix}{pname}"
-        # Seed session once
-        if widget_key not in st.session_state:
-            st.session_state[widget_key] = spec["default"]
+    with st.expander("Select model parameters.", expanded=True):
+        for pname, spec in cfg.parameters.items():
+            dtype = spec.get("dtype", "float")
+            label = cfg.param_display_names[pname]
+            widget_key = f"{prefix}{pname}"
+            # Seed session once
+            if widget_key not in st.session_state:
+                st.session_state[widget_key] = spec["default"]
 
-        if dtype == "int":
-            chosen[pname] = st.slider(
-                label,
-                min_value=int(spec["min"]),
-                max_value=int(spec["max"]),
-                value=int(st.session_state[widget_key]),
-                step=int(spec["step"]),
-                key=widget_key,
-            )
-        else:
-            chosen[pname] = st.slider(
-                label,
-                min_value=float(spec["min"]),
-                max_value=float(spec["max"]),
-                value=float(st.session_state[widget_key]),
-                step=float(spec["step"]),
-                key=widget_key,
-            )
+            if dtype == "int":
+                chosen[pname] = st.slider(
+                    label,
+                    min_value=int(spec["min"]),
+                    max_value=int(spec["max"]),
+                    value=int(st.session_state[widget_key]),
+                    step=int(spec["step"]),
+                    key=widget_key,
+                )
+            else:
+                chosen[pname] = st.slider(
+                    label,
+                    min_value=float(spec["min"]),
+                    max_value=float(spec["max"]),
+                    value=float(st.session_state[widget_key]),
+                    step=float(spec["step"]),
+                    key=widget_key,
+                )
             
     return chosen
 

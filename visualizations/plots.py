@@ -1,9 +1,8 @@
 import numpy as np
 import pandas as pd
-import seaborn as sns
 import altair as alt
 import streamlit as st
-
+import plotly.express as px
 
 def plot_compartments_traj(
     trj, comp, age, show_median=True, facecolor="#0c1019", linecolor="#50f0d8"
@@ -70,8 +69,29 @@ def plot_compartments_traj(
         .configure(background=facecolor)     # dark background
     )
 
-    st.altair_chart(chart, use_container_width=True)
+    """
+    brush = alt.selection_interval(encodings=['x'])  # brush only on x
+    detail = (
+        alt.layer(*layers)
+        .transform_filter(brush)
+        .properties(height=380)
+    )
 
+    overview = (
+        alt.Chart(df)
+        .transform_calculate(hint='"Drag to select a range"')  # constant field
+        .mark_area(opacity=0.15, color=linecolor)
+        .encode(x=alt.X("Day:Q", axis=alt.Axis(title=None, grid=False)),
+                y=alt.Y("Value:Q", axis=alt.Axis(title=None, grid=False, ticks=False, labels=False, domain=False)),
+                tooltip=[alt.Tooltip("hint:N", title="")]
+        )
+        .add_params(brush)
+        .properties(height=30)
+    )
+
+    chart = alt.vconcat(detail, overview).configure(background=facecolor)
+    """
+    st.altair_chart(chart, use_container_width=True)
 
 def plot_contact_matrix(
     layer, matrices, groups, facecolor="#0c1019", cmap="teals"
@@ -146,37 +166,6 @@ def plot_contact_matrix(
 
     st.altair_chart(chart, use_container_width=True)
 
-
-def plot_population(
-    population, show_percent=False, facecolor="#0c1019", linecolor="#50f0d8", order=["0-4", "5-19", "20-49", "50-64", "65+"]
-):
-    """Plot population distribution with Altair."""
-    df = pd.DataFrame({
-        "Age Group": population.Nk_names,
-        "Count": population.Nk
-    })
-    
-    if show_percent:
-        df["Value"] = 100 * df["Count"] / df["Count"].sum()
-        ylabel = "Individuals (%)"
-    else:
-        df["Value"] = df["Count"]
-        ylabel = "Individuals (total)"
-
-    chart = (
-        alt.Chart(df)
-        .mark_bar(color=linecolor)
-        .encode(
-            x=alt.X("Age Group:O", sort=order, axis=alt.Axis(title="Age Group", labelColor="white", titleColor="white")),
-            y=alt.Y("Value:Q", axis=alt.Axis(title=ylabel, labelColor="white", titleColor="white")),
-            tooltip=["Age Group", alt.Tooltip("Value", format=".1f")]
-        )
-        .properties(height=450, background=facecolor)
-    )
-
-    st.altair_chart(chart, use_container_width=True)
-
-
 def plot_contact_intensity(
     rhos: dict, facecolor="#0c1019"
 ):
@@ -237,3 +226,42 @@ def plot_contact_intensity(
     )
 
     st.altair_chart(chart, use_container_width=True)
+
+def plot_population(
+    population, facecolor="#0c1019", palette=None
+):
+    """Plot population distribution with Plotly."""
+    df = pd.DataFrame({
+        "Age Group": population.Nk_names,
+        "Count": population.Nk,
+    })
+
+    if palette is None:
+        palette = ["#16c7b5", "#3a91d2", "#2f6aa8", "#587770", "#22302e"]
+
+    fig = px.pie(
+        df,
+        names="Age Group",
+        values="Count",
+        hole=0.6,
+        color="Age Group",
+        color_discrete_sequence=palette,
+    )
+
+    fig.update_traces(
+        textinfo="percent+label",
+        textfont_color="#e5e7eb",
+         textfont_size=16,
+        hovertemplate="<b>%{label}</b><br>Percent: %{percent:.1%}<br>Count: %{value:,}<extra></extra>",
+    )
+
+    fig.update_layout(
+        showlegend=False,
+        paper_bgcolor=facecolor,
+        plot_bgcolor=facecolor,
+        uniformtext_minsize=12, 
+        uniformtext_mode="hide",
+        margin=dict(l=0, r=0, t=0, b=0),
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
