@@ -149,9 +149,10 @@ def render_config_params(cfg: ModelConfig, prefix: str = "param_") -> Dict[str, 
                     label,
                     min_value=float(spec["min"]),
                     max_value=float(spec["max"]),
-                    value=float(st.session_state[widget_key]),
+                    value=float(spec["default"]),
+                    #value=float(st.session_state[widget_key]),
                     step=float(spec["step"]),
-                    key=widget_key,
+                    #key=widget_key,
                 )
             
     return chosen

@@ -59,15 +59,6 @@ def render_parameter_overrides_tab(config):
 
     st.session_state.parameter_overrides = overrides
 
-    # Summary
-    st.markdown("### Overrides summary")
-    if overrides:
-        for k, v in overrides.items():
-            disp = config.param_display_names[k]
-            st.write(f"**{disp}**: days {v['start_day']}–{v['end_day']}, value {v['param']}")
-    else:
-        st.info("No overrides enabled.")
-
     # Notes
     st.caption(
         "Notes: Parameter overrides adjust the value of the model parameters (e.g. R₀ or infectious period) only within their day range."

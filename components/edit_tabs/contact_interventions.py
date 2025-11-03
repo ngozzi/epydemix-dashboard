@@ -66,14 +66,6 @@ def render_contact_interventions_tab():
     # Store in session_state
     st.session_state.interventions = interventions
 
-    # Summary
-    st.markdown("### Intervention summary")
-    if interventions:
-        for k, v in interventions.items():
-            st.write(f"**{k}**: days {v['start']}–{v['end']}, reduction {int(v['reduction']*100)}%")
-    else:
-        st.info("No interventions enabled.")
- 
     # Notes
     st.caption(
         "Notes: Interventions scale contacts by layer in their active window."

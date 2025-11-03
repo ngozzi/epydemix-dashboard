@@ -77,7 +77,7 @@ def run_simulation(run_cfg, start_date):
         
         # 2. Compute spectral radius for transmission rate calculation
         C = np.array([population.contact_matrices[layer] for layer in population.contact_matrices])
-        spectral_radius = np.linalg.eigvals(C.sum(axis=0)).max()
+        spectral_radius = np.linalg.eigvals(C.sum(axis=0)).real.max()
         
         # 3. Build derived parameters from user inputs
         context = {"spectral_radius": spectral_radius}
