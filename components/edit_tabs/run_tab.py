@@ -85,20 +85,19 @@ def display_run_config_summary(run_cfg):
             st.info("No contact interventions enabled.")
 
     with col3:
-        # Parameter overrides table
-        st.markdown("##### Parameter Overrides Summary")
-        if run_cfg["parameter_overrides"]:
+        # Vaccinations table
+        st.markdown("##### Vaccinations Summary")
+        vaccinations = st.session_state.get("vaccinations", [])
+        if vaccinations:
             rows = []
-            for pname, spec in run_cfg["parameter_overrides"].items():
-                display_name = run_cfg["model_config"].param_display_names[pname]
+            for it in vaccinations:
                 rows.append({
-                    "Parameter": str(display_name),
-                    "Start day": str(spec["start_day"]),
-                    "End day": str(spec["end_day"]),
-                    "Override value": f"{spec['param']:.2f}"
+                    "Start day": str(it.get("start", "")),
+                    "End day": str(it.get("end", "")),
+                    "Coverage (%)": str(int(round(100 * float(it.get("coverage", 0.0))))),
+                    "Effectiveness (%)": str(int(round(100 * float(it.get("effectiveness", 0.0)))))
                 })
-            
-            df_ovr = pd.DataFrame(rows).sort_values(["Start day", "Parameter"])
-            st.dataframe(df_ovr, use_container_width=True, hide_index=True)
+            df_vx = pd.DataFrame(rows).sort_values(["Start day"])
+            st.dataframe(df_vx, use_container_width=True, hide_index=True)
         else:
-            st.info("No parameter overrides enabled.")
+            st.info("No vaccination campaigns configured.")

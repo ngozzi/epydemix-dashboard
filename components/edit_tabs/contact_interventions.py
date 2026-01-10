@@ -2,72 +2,95 @@ import streamlit as st
 
 LAYER_NAMES = ["home", "school", "work", "community"]
 
+def _ensure_state_defaults():
+    st.session_state.setdefault("contact_interventions", [])  # list of {layer,start,end,reduction}
+    st.session_state.setdefault("_ci_layer", LAYER_NAMES[0])
+    st.session_state.setdefault("_ci_start", 0)
+    st.session_state.setdefault("_ci_end", 250)
+    st.session_state.setdefault("_ci_red_pct", 0)
+
+def _derive_interventions_dict_from_list(int_list):
+    # Backward-compat: build a dict mapping last intervention per layer
+    result = {}
+    for item in int_list:
+        result[item["layer"]] = {
+            "start": int(item["start"]),
+            "end": int(item["end"]),
+            "reduction": float(item["reduction"]),
+        }
+    return result
+
 def render_contact_interventions_tab():
     """Render the Contact Interventions tab."""
 
     st.subheader("Contact Interventions")
 
-    # Initialize defaults in session_state
-    for layer in LAYER_NAMES:
-        st.session_state.setdefault(f"{layer}_en", False)
-        st.session_state.setdefault(f"{layer}_start", 0)
-        st.session_state.setdefault(f"{layer}_end", 250) # default to 250 days
-        st.session_state.setdefault(f"{layer}_red", 0)
+    _ensure_state_defaults()
 
-    interventions = {}
-    # Grid: 2 columns, as many rows as needed
-    for i in range(0, len(LAYER_NAMES), 2):
-        row_layers = LAYER_NAMES[i:i+2]
-        c1, c2 = st.columns(2)
-        cols = [c1, c2]
-        for j, sel in enumerate(row_layers):
-            with cols[j]:
-                with st.expander(f"Configure: {sel}", expanded=False):
-                    st.checkbox(
-                        f"Enable intervention on {sel}",
-                        key=f"{sel}_en",
-                        value=bool(st.session_state[f"{sel}_en"]),
-                    )
+    # Input controls
+    c1, c2, c3, c4 = st.columns([1.2, 1, 1, 1.2])
+    with c1:
+        st.selectbox("Layer", options=LAYER_NAMES, key="_ci_layer")
+    with c2:
+        st.number_input(
+            "Start day", min_value=0, max_value=730, step=1, key="_ci_start"
+        )
+    with c3:
+        # End day input independent; enforce end>=start when adding
+        st.number_input(
+            "End day", min_value=0, max_value=730, step=1, key="_ci_end"
+        )
+    with c4:
+        st.slider(
+            "Reduction (%)", min_value=0, max_value=100, step=1, key="_ci_red_pct"
+        )
 
-                    cur_start = int(st.session_state[f"{sel}_start"])
-                    cur_end   = int(st.session_state[f"{sel}_end"])
-
-                    cst, cen = st.columns(2)
-                    with cst:
-                        st.number_input(
-                            "Start day", min_value=0, max_value=730,
-                            value=cur_start, step=1, key=f"{sel}_start",
-                        )
-                    new_start = int(st.session_state[f"{sel}_start"])
-                    safe_end_default = max(new_start, cur_end)
-
-                    with cen:
-                        st.number_input(
-                            "End day", min_value=new_start, max_value=730,
-                            value=safe_end_default, step=1, key=f"{sel}_end",
-                        )
-
-                    st.slider(
-                        "Reduction of contacts (%)",
-                        min_value=0, max_value=100, step=1,
-                        value=int(st.session_state[f"{sel}_red"]),
-                        key=f"{sel}_red",
-                    )
-
-    # Collect enabled interventions
-    for layer in LAYER_NAMES:
-        if st.session_state[f"{layer}_en"]:
-            interventions[layer] = {
-                "start": int(st.session_state[f"{layer}_start"]),
-                "end":   int(st.session_state[f"{layer}_end"]),
-                "reduction": int(st.session_state[f"{layer}_red"]) / 100.0,
+    if st.button("Add intervention"):
+        start_v = int(st.session_state["_ci_start"])
+        end_v = int(st.session_state["_ci_end"])
+        if end_v < start_v:
+            st.warning("End day must be greater than or equal to start day.")
+        else:
+            new_item = {
+                "layer": st.session_state["_ci_layer"],
+                "start": start_v,
+                "end": end_v,
+                "reduction": float(st.session_state["_ci_red_pct"]) / 100.0,
             }
+            st.session_state["contact_interventions"].append(new_item)
+            # optional: do not force rerun; Streamlit will rerun once due to the button itself
 
-    # Store in session_state
-    st.session_state.interventions = interventions
+    # Display list of added interventions
+    items = st.session_state.get("contact_interventions", [])
+    if items:
+        st.markdown("Added interventions")
+        remove_index = None
+        for idx, it in enumerate(items):
+            lcol, scol, ecol, rcol, dcol = st.columns([1.2, 0.8, 0.8, 1, 0.6])
+            with lcol:
+                st.code(it["layer"], language=None)
+            with scol:
+                st.write(f"Start Day: {it['start']}")
+            with ecol:
+                st.write(f"End Day: {it['end']}")
+            with rcol:
+                pct = int(round(it["reduction"] * 100))
+                st.write(f"Reduction: {pct}%")
+            with dcol:
+                if st.button("Remove", key=f"ci_remove_{idx}"):
+                    remove_index = idx
+        if remove_index is not None:
+            del st.session_state["contact_interventions"][remove_index]
+            st.rerun()
+    else:
+        st.info("No interventions added yet.")
 
-    # Notes
+    # Backward-compat output for downstream consumers
+    st.session_state.interventions = _derive_interventions_dict_from_list(
+        st.session_state.get("contact_interventions", [])
+    )
+
     st.caption(
-        "Notes: Interventions scale contacts by layer in their active window."
+        "Notes: Add one or more interventions. Reduction scales contacts within the given window."
     )
 

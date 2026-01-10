@@ -1,12 +1,10 @@
 import streamlit as st
 import numpy as np
+import pandas as pd
 from datetime import timedelta
 from epydemix.population import load_epydemix_population
 from epydemix.utils import compute_simulation_dates
-from .config_engine import (
-    eval_derived, build_epimodel_from_config, 
-    compute_override_value
-)
+from .config_engine import eval_derived, build_epimodel_from_config
 
 def build_run_config() -> dict:
     get = st.session_state.get
@@ -16,7 +14,7 @@ def build_run_config() -> dict:
     model_config = get("ui_model_config", get("model_config"))
     param_values = get("ui_param_values", get("param_values"))
     interventions = get("ui_interventions", get("interventions"))
-    parameter_overrides = get("ui_parameter_overrides", get("parameter_overrides"))
+    vaccinations = get("ui_vaccinations", get("vaccinations"))
     initial_conditions = get("ui_initial_conditions", get("initial_conditions"))
     n_sims = get("ui_n_sims", get("n_sims"))
     sim_days = get("ui_sim_days", get("sim_days"))
@@ -26,11 +24,12 @@ def build_run_config() -> dict:
         "model_config": model_config,
         "param_values": param_values,
         "interventions": interventions,
-        "parameter_overrides": parameter_overrides,
+        "vaccinations": vaccinations,
         "initial_conditions": initial_conditions,
         "n_sims": int(n_sims) if n_sims is not None else None,
         "sim_days": int(sim_days) if sim_days is not None else None,
     }
+
 
 def convert_initial_conditions_to_arrays(initial_conditions_pct, population, compartments):
     """
@@ -69,17 +68,45 @@ def convert_initial_conditions_to_arrays(initial_conditions_pct, population, com
     
     return initial_conditions_dict
 
+
+def get_vaccination_doses(vx, population_dict, age_grp, start_day, end_day):
+    """Compute the daily vaccination doses for a given vaccination campaign and age group."""
+    # compute daily doses 
+    if age_grp not in vx["target_age_groups"]:
+        doses = np.zeros_like(range(start_day, end_day + 1))
+    else: 
+        # compute total effective doses: Nk * coverage * effectiveness
+        total_eff_doses = int(vx["coverage"] * population_dict[age_grp] * vx["effectiveness"])
+        # distribute doses over the campaign period
+        doses = np.zeros_like(range(start_day, end_day + 1))
+        doses[vx["start"]:vx["end"]] = total_eff_doses / (vx["end"] - vx["start"] + 1)
+    return doses.astype(int)
+
+
 def run_simulation(run_cfg, start_date):
     """Run the epidemic simulation with current configuration."""
     with st.spinner("Running simulations..."):
         # 1. Load population and contact matrices
         population = load_epydemix_population(run_cfg["country_name"])
-        
-        # 2. Compute spectral radius for transmission rate calculation
+        num_days = int(run_cfg["sim_days"]) if run_cfg.get("sim_days") is not None else 0
+
+        # 2. Compute vaccination schedule
+        population_dict = {name: val for name, val in zip(population.Nk_names, population.Nk)}
+        df_vaccination_schedule = pd.DataFrame()
+        for vx in run_cfg["vaccinations"]:
+            vx_dict = {name: [] for name in population.Nk_names}
+            vx_dict["t"] = range(num_days + 1)
+            vx_dict["name"] = [vx["name"] for _ in range(num_days + 1)]
+            
+            for age_grp in population.Nk_names:
+                vx_dict[age_grp] = get_vaccination_doses(vx, population_dict, age_grp, 0, num_days)
+            df_vaccination_schedule = pd.concat([df_vaccination_schedule, pd.DataFrame(vx_dict)])
+
+        # 3. Compute spectral radius for transmission rate calculation
         C = np.array([population.contact_matrices[layer] for layer in population.contact_matrices])
         spectral_radius = np.linalg.eigvals(C.sum(axis=0)).real.max()
         
-        # 3. Build derived parameters from user inputs
+        # 4. Build derived parameters from user inputs
         context = {"spectral_radius": spectral_radius}
         derived = eval_derived(
             run_cfg["model_config"].derived_parameters,
@@ -87,14 +114,14 @@ def run_simulation(run_cfg, start_date):
             context
         )
         
-        # 4. Build EpiModel from configuration
+        # 5. Build EpiModel from configuration
         model = build_epimodel_from_config(
             run_cfg["model_config"],
             derived,
             population
         )
-        
-        # 5. Apply interventions
+
+        # 6. Apply interventions
         for layer, intervention in run_cfg["interventions"].items():
             model.add_intervention(
                 layer_name=layer,
@@ -102,30 +129,21 @@ def run_simulation(run_cfg, start_date):
                 end_date=start_date + timedelta(days=intervention["end"]),
                 reduction_factor=1.0 - intervention["reduction"]
             )
+
+        # 7. Apply vaccinations
         
-        # 6. Apply parameter overrides
-        for param_name, override in run_cfg["parameter_overrides"].items():
-            engine_param, override_value = compute_override_value(
-                param_name, override["param"], 
-                run_cfg["model_config"], 
-                run_cfg["param_values"], 
-                context
-            )
-            model.override_parameter(
-                parameter_name=engine_param,
-                start_date=start_date + timedelta(days=override["start_day"]),
-                end_date=start_date + timedelta(days=override["end_day"]),
-                value=override_value
-            )
-        
-        # 7. Convert initial conditions to proper format
+        # 8. Convert initial conditions to proper format
         initial_conditions_dict = convert_initial_conditions_to_arrays(
             run_cfg["initial_conditions"],
             population,
-            run_cfg["model_config"].compartments
+            model.compartments
         )
+        # Ensure zero initialization for any missing compartment (e.g., injected V)
+        for comp in model.compartments:
+            if comp not in initial_conditions_dict:
+                initial_conditions_dict[comp] = np.zeros(len(population.Nk), dtype=int)
         
-        # 8. Run simulations
+        # 9. Run simulations
         Nsim = int(run_cfg["n_sims"])
         sim_days = int(run_cfg["sim_days"])
         end_date = start_date + timedelta(days=sim_days)
@@ -136,17 +154,16 @@ def run_simulation(run_cfg, start_date):
             initial_conditions_dict=initial_conditions_dict
         )
         
-        # 9. Store results in session state
+        # 10. Store results in session state
         simulation_output = {
             "simulation_results": results,
             "population": population,
             "model": model,
-            "simulation_dates": compute_simulation_dates(start_date, end_date)
+            "simulation_dates": compute_simulation_dates(start_date, end_date),
+            "vaccination_schedule": df_vaccination_schedule,
         }
         
         return simulation_output
-        # 10. Compute additional metrics
-        #compute_contact_intensities(model, population, st.session_state["simulation_dates"])
 
 def validate_simulation_config():
     """Validate that all required configuration is present."""

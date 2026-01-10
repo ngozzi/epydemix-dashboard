@@ -25,6 +25,10 @@
     "param_display_names": {
       "R0": "R₀",
       "infectious_period": "Infectious period (days)"
+    },
+    "vaccination": {
+      "vaccinable_compartments": ["Susceptible", "Recovered"],
+      "effective_on_compartments": ["Susceptible"]
     }
   }
 

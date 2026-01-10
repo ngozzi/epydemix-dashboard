@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.helpers import data_uri
+from helpers import data_uri
 
 def show_dashboard_header():
     epydemix = data_uri("assets/epydemix-icon.svg")

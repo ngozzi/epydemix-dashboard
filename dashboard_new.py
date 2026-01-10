@@ -7,12 +7,12 @@ from components.edit_tabs.model_location import render_model_location_tab
 from components.edit_tabs.model_params import render_model_params_tab
 from components.edit_tabs.initial_conditions import render_initial_conditions_tab
 from components.edit_tabs.contact_interventions import render_contact_interventions_tab
-from components.edit_tabs.parameter_overrides import render_parameter_overrides_tab
+from components.edit_tabs.vaccinations import render_vaccinations_tab
 from components.edit_tabs.run_tab import render_run_tab
 from components.edit_tabs.simulation_settings import render_simulation_settings_tab
 from components.viz_tabs.compartments import render_compartments_tab
 from components.viz_tabs.demographic_and_contacts import render_demographic_and_contacts_tab
-#from components.viz_tabs.interventions import render_interventions_tab
+from components.viz_tabs.interventions import render_interventions_tab
 from utils.simulation import build_run_config
     
 # Set page config
@@ -38,7 +38,7 @@ def main():
 
     # Render dashboard
     else:
-        tabs = st.tabs(["Model & Geography", "Model and Simulation Settings", "Contact Interventions", "Parameter Overrides", "Run", "Results"])
+        tabs = st.tabs(["Model & Geography", "Model and Simulation Settings", "Contact Interventions", "Vaccinations", "Run", "Results"])
 
         # Render model & location tab
         with tabs[0]:
@@ -68,7 +68,7 @@ def main():
             if st.session_state.model_config is None:
                 st.info("Please select a model and geography first")
             else:
-                render_parameter_overrides_tab(st.session_state.model_config)
+                render_vaccinations_tab(st.session_state.model_config)
 
         with tabs[4]:
             if st.session_state.model_config is None:
@@ -106,8 +106,10 @@ def main():
                         )
 
                 elif selected_tab == "Interventions":
-                    st.subheader("Interventions")
-                    st.info("Intervention plots will appear here.")
+                    render_interventions_tab(
+                        st.session_state["simulation_output"]["population"],
+                        st.session_state["simulation_output"]["simulation_dates"],
+                    )
                 
                 
 if __name__ == "__main__":

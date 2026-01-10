@@ -1,7 +1,7 @@
 from __future__ import annotations
 import json
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Set
 import numpy as np
 import numexpr as ne
 import streamlit as st
@@ -18,6 +18,7 @@ class ModelConfig:
     transitions: List[Dict[str, Any]]
     initial_conditions: Dict[str, float] = field(default_factory=dict)
     param_display_names: Dict[str, str] = field(default_factory=dict)
+    vaccination: Dict[str, Any] = field(default_factory=dict)
 
 # ----------------- Loading/validation -----------------
 def load_model_config_from_file(path: str) -> ModelConfig:
@@ -73,7 +74,8 @@ def _validate_and_normalize(cfg: Dict[str, Any]) -> ModelConfig:
         engine_parameters=engine_params,
         transitions=cfg["transitions"],
         initial_conditions=init_cond, 
-        param_display_names=display_names
+        param_display_names=display_names,
+        vaccination=cfg.get("vaccination", {})
     )
 
 # ----------------- Context and derived eval -----------------
@@ -160,31 +162,77 @@ def render_config_params(cfg: ModelConfig, prefix: str = "param_") -> Dict[str, 
 # ----------------- Overrides (optional) -----------------
 def compute_override_value(pname: str, value: float, cfg: ModelConfig, base_params: Dict[str, float], context: Dict[str, float]) -> Tuple[str, float]:
     """
-    Given a high-level user parameter name (e.g., 'R0' or 'infectious_period') and an override value,
-    compute which engine parameter to override and with what numeric value.
-    Returns (engine_param_name, override_value).
+    Given a user-facing parameter name and an override value, compute which engine
+    parameter to override and the numeric value to use.
+
+    Strategy:
+      - If the user overrides a parameter that is itself directly used by the engine
+        (i.e. appears in cfg.engine_parameters keys), override that directly.
+      - Otherwise, recompute derived parameters with the override applied and choose
+        the engine-used derived parameter(s) that depend on this pname. If multiple
+        are affected, pick the one with the most specific dependency (fewest inputs).
     """
-    # Recompute derived with the overridden high-level pname -> value, others from base_params
+    if not cfg.engine_parameters:
+        raise ValueError("Model config is missing engine_parameters mapping.")
+
+    engine_targets: Set[str] = set(cfg.engine_parameters.keys())
+
+    # 1) Direct mapping: if pname itself is an engine-target derived
+    if pname in engine_targets:
+        engine_param = cfg.engine_parameters[pname]
+        # Use the value as-is (user provided engine-level value)
+        return engine_param, float(value)
+
+    # 2) Compute new derived values with the override applied
     overridden_params = {**base_params, pname: value}
-    derived = eval_derived(cfg.derived_parameters, overridden_params, context)
+    new_derived = eval_derived(cfg.derived_parameters, overridden_params, context)
 
-    # Decide which engine parameter to touch.
-    # Heuristic:
-    # - If overriding R0, we want to change 'beta'
-    # - If overriding infectious_period, we want to change 'mu'
-    # You can also generalize by keeping a mapping in config if needed.
-    target_derived = None
-    if pname.lower() in ("r0", "r_0"):
-        target_derived = "beta"
-    elif "infectious" in pname.lower():
-        target_derived = "mu"
-    else:
-        # fallback: if pname appears in engine_parameters mapping directly
-        target_derived = pname if pname in cfg.engine_parameters else None
+    # For selection, we need dependency info: which derived depends on which base params
+    def extract_deps(expr: str, param_names: Set[str], derived_names: Set[str]) -> Set[str]:
+        tokens: Set[str] = set()
+        name = ""
+        for ch in expr:
+            if ch.isalnum() or ch == "_":
+                name += ch
+            else:
+                if name:
+                    tokens.add(name)
+                    name = ""
+        if name:
+            tokens.add(name)
+        # Keep only references to base params or other deriveds
+        return {t for t in tokens if t in param_names or t in derived_names}
 
-    if not target_derived:
-        raise ValueError(f"Don't know which engine parameter to override for '{pname}'")
+    param_names: Set[str] = set(cfg.parameters.keys())
+    derived_names: Set[str] = set(cfg.derived_parameters.keys())
+
+    # Build a map of derived -> direct dependencies on base params (flattening derived->params assuming one level)
+    direct_dep_map: Dict[str, Set[str]] = {}
+    for dname, expr in cfg.derived_parameters.items():
+        deps = extract_deps(expr, param_names, derived_names)
+        # If a derived depends on other deriveds, we conservatively include all base params
+        # referenced by those deriveds as well (one-level expansion covers common cases).
+        expanded: Set[str] = set()
+        for dep in deps:
+            if dep in param_names:
+                expanded.add(dep)
+            elif dep in derived_names:
+                # include that derived's immediate param deps if available
+                inner = extract_deps(cfg.derived_parameters[dep], param_names, derived_names)
+                expanded |= {x for x in inner if x in param_names}
+        direct_dep_map[dname] = expanded if expanded else set()
+
+    # 3) Identify which engine-target derived params are affected by this pname
+    affected: List[str] = [d for d in engine_targets if pname in direct_dep_map.get(d, set())]
+
+    if not affected:
+        # No engine parameter depends on this pname; nothing to do
+        raise ValueError(f"No engine parameters depend on '{pname}'.")
+
+    # 4) If multiple affected, choose the most specific (fewest dependencies)
+    affected.sort(key=lambda d: (len(direct_dep_map.get(d, set())), d))
+    target_derived: str = affected[0]
 
     engine_param = cfg.engine_parameters.get(target_derived, target_derived)
-    override_value = derived[target_derived]
-    return engine_param, float(override_value)
+    override_value = float(new_derived[target_derived])
+    return engine_param, override_value

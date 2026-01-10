@@ -37,6 +37,11 @@
       "R0": "R₀",
       "incubation_period": "Incubation period (days)",
       "infectious_period": "Infectious period (days)"
+    },
+
+    "vaccination": {
+      "vaccinable_compartments": ["Susceptible", "Exposed", "Recovered"],
+      "effective_on_compartments": ["Susceptible"]
     }
   }
   
