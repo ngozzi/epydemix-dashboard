@@ -9,6 +9,7 @@ from ui.viz_panel import render_viz_panel
 from state import ensure_workspace_defaults
 
 
+
 def main():
 
     st.set_page_config(
