@@ -7,9 +7,13 @@ from copy import deepcopy
 from typing import Any, Dict
 import streamlit as st
 import pandas as pd
+import numpy as np 
 from engine.run import run_scenario
-from constants import LAYER_NAMES, DEFAULT_AGE_GROUPS
+from constants import LAYER_NAMES, DEFAULT_AGE_GROUPS, START_DATE
 from helpers import load_population, daily_doses_by_age
+from epydemix import EpiModel
+from epydemix.utils import compute_simulation_dates
+from datetime import timedelta
 
 
 WORKSPACE_KEYS_TO_CLEAR = [
@@ -73,7 +77,7 @@ def _stable_hash_config(cfg: Dict[str, Any]) -> str:
     cfg_for_hash = {
         k: v
         for k, v in cfg.items()
-        if k not in {"population", "daily_doses_by_age"}  
+        if k not in {"population", "daily_doses_by_age", "spectral_radius_df"}  
     }
     payload = json.dumps(cfg_for_hash, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:10]
@@ -106,6 +110,34 @@ def build_current_config(model: str, geography: str) -> Dict[str, Any]:
         age_groups=DEFAULT_AGE_GROUPS,
     )
 
+    # compute spectral radius of contact matrix
+    epi_model = EpiModel() 
+    epi_model.set_population(population)
+    for intervention in st.session_state.get("contact_interventions", {}):
+        epi_model.add_intervention(
+                layer_name=intervention["layer"],
+                start_date=START_DATE + timedelta(days=intervention["start_day"]),
+                end_date=START_DATE + timedelta(days=intervention["end_day"]),
+                reduction_factor=1.0 - (intervention["reduction_pct"] / 100.)
+            )
+    simulation_dates = compute_simulation_dates(START_DATE, START_DATE + timedelta(days=int(st.session_state.get("sim_length", 250))))
+    epi_model.compute_contact_reductions(simulation_dates)
+
+    spectral_radius_df = pd.DataFrame() 
+    for layer in ["home", "school", "work", "community", "overall"]:
+        if layer == "overall": 
+            C = sum(population.contact_matrices.values())
+        else: 
+            C = population.contact_matrices[layer]
+        rho_0 = np.linalg.eigvals(C).real.max()
+        rhos = []
+        for date in simulation_dates: 
+            rhos.append(np.linalg.eigvals(epi_model.Cs[date][layer]).real.max()) 
+        df_temp = pd.DataFrame(data={"rho": rhos, "rho_perc": 100 * np.array(rhos) / rho_0})
+        df_temp["t"] = np.arange(0, len(rhos))
+        df_temp["layer"] = layer
+        spectral_radius_df = pd.concat((spectral_radius_df, df_temp), ignore_index=True)
+    
     cfg: Dict[str, Any] = {
         "model": model,
         "geography": geography,
@@ -117,6 +149,7 @@ def build_current_config(model: str, geography: str) -> Dict[str, Any]:
         "vaccination_settings": deepcopy(st.session_state.get("vaccination_settings", {})),
         "vaccination_campaigns": deepcopy(st.session_state.get("vaccination_campaigns", [])),
         "daily_doses_by_age": deepcopy(df_doses),
+        "spectral_radius_df": deepcopy(spectral_radius_df),
     }
     return cfg
 
@@ -149,8 +182,11 @@ def run_current_scenario(model: str, geography: str) -> str:
     sid = save_current_scenario(model, geography)
     cfg = st.session_state["scenarios"][sid]["config"]
 
-    df = run_scenario(cfg)  # returns a pd.DataFrame with t and I_*, R_* columns
-    st.session_state["results"][sid] = df
+    df_comp, df_trans = run_scenario(cfg)  
+    st.session_state["results"][sid] = {
+        "compartments": df_comp,
+        "transitions": df_trans,
+    }
 
     st.session_state["last_run_scenario_id"] = sid
     return sid

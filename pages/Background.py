@@ -86,10 +86,11 @@ The **SEIR model** divides the population into four compartments:
 - **E (Exposed)**: Infected (not yet infectious) individuals in the latent period
 - **I (Infectious)**: Individuals who are infectious and can transmit the disease
 - **R (Recovered)**: Individuals who have recovered and gained permanent immunity
+
 """)
 
 svg_path = Path("assets/seir.svg")
-st.image(str(svg_path), caption="SEIR Model Compartment Flow", use_container_width=True)
+st.image(str(svg_path), caption="SEIR Model Compartment Flow", use_container_width=False)
 
 
 st.markdown("""
@@ -116,12 +117,81 @@ We note that the specified $R_0$ is in absence of background immunity. Users can
 
 st.markdown("""
 ### SEIRS (Influenza)
-TODO
+
+The **SEIRS model** extends the SEIR framework by incorporating **waning immunity**, allowing recovered individuals to become susceptible again over time. This better captures diseases where immunity is temporary, such as seasonal influenza.
+
+To realistically model immunity waning, we introduce an intermediate compartment **R₁** between R and S. This two-stage process follows an **Erlang distribution with shape parameter 2**, providing a more realistic delay distribution than simple exponential decay.
+""") 
+
+svg_path = Path("assets/seirs.svg")
+st.image(str(svg_path), caption="SEIRS Model with Seasonality Compartment Flow", use_container_width=False)
+
+st.markdown("""
+The additional transitions beyond the standard SEIR model are:
+
+1. **Waning immunity 1/2 (R → R₁)**: Recovered individuals transition to the intermediate compartment R₁ after an average time of (1/μ_waning)/2.
+2. **Waning immunity 2/2 (R₁ → S)**: Individuals in R₁ return to the susceptible compartment S after an additional (1/μ_waning)/2 period.
+
+The total time from R → S averages 1/μ_waning, but the two-stage process creates more realistic, less variable immunity duration.
+
+#### Seasonality
+
+The model incorporates **seasonal forcing** to capture the characteristic winter peaks of respiratory infections. Seasonality is implemented by modulating the transmission rate (β) using a sinusoidal pattern:
+
+- **Seasonality peak day**: Day of the year (1-365) when transmission is highest
+- **Seasonality amplitude**: Strength of seasonal variation, specified as a discrete level:
+  - **Strong**: Large seasonal variation (e.g., strong winter peaks)
+  - **Moderate**: Noticeable seasonal pattern
+  - **Medium**: Moderate seasonal effect (default for influenza)
+  - **Low**: Mild seasonal variation
+  - **None**: No seasonality (constant transmission year-round)
+
+**Important:** The specified R₀ represents the **baseline reproductive number at the seasonal peak**, assuming no background immunity or interventions. The effective R₀ varies throughout the year based on the seasonal forcing.
+
+#### Influenza Parameterization
+
+The default parameters are calibrated for seasonal influenza:
+
+- **R₀**: 2.0 (at seasonal peak without background immunity)
+- **Incubation period**: 1.5 days
+- **Infectious period**: 1.5 days  
+- **Waning immunity**: 365 days (~1 year)
+- **Seasonality peak**: Day 125 (with respect to the start date of the simulation)
+- **Seasonality amplitude**: Medium
+- **Background immunity**: 15%
+
+These parameters can be adjusted to model other respiratory pathogens with temporary immunity, such as RSV or endemic coronaviruses.
 """)
+
 
 st.markdown("""
 ### SEIHR (COVID-19)
-TODO
+The **SEIHR model** extends the SEIRS framework by incorporating **hospitalization**, allowing infected individuals to be hospitalized and recover from the disease.
+
+The additional transitions beyond the standard SEIRS model are:
+
+1. **Hospitalization (I → H)**: Infectious individuals transition to the hospitalized compartment H depending on age-specific probability of hospitalization ($p_H$).
+2. **Recovery from hospitalization (H → R)**: Individuals in H return to the recovered compartment R after the duration of hospital stay ($1/\mu_H$).
+
+
+""")
+
+svg_path = Path("assets/seihr.svg")
+st.image(str(svg_path), caption="SEIHR Model with Hospitalization Compartment Flow", use_container_width=False)
+
+st.markdown("""
+#### COVID-19 Parameterization
+
+The default parameters are calibrated for COVID-19:
+
+- **R₀**: 2.5
+- **Incubation period**: 3 days
+- **Infectious period**: 2.5 days
+- **Length of hospital stay**: 5 days
+- **Probability of hospitalization by age group**: 0.01, 0.02, 0.03, 0.04, 0.05 from Ref XXX. 
+
+We stress that the probability of hospitalization is age-dependent and can be specified by the user.
+Users can also specify the length of hospital stay, or change the value of other parameters to align the model to other diseases.
 """)
 
 st.divider()

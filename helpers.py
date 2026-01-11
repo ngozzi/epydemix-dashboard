@@ -182,5 +182,7 @@ def daily_doses_by_age(
             doses[start_clip : end_clip + 1, j] += daily
 
     df = pd.DataFrame(doses, columns=age_groups)
+    df[age_groups] = df[age_groups].astype(int)
+    df["total"] = df[age_groups].sum(axis=1)
     df.insert(0, "t", np.arange(sim_length + 1, dtype=int))
     return df

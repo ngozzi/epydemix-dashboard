@@ -60,6 +60,8 @@ def render_vaccination_campaigns(model: str, age_groups: list[str] | None = None
         compartments = ["S", "E", "I", "R"]
     elif model == "SEIRS (Influenza)":
         compartments = ["S", "E", "I", "R"]
+    elif model == "SEIHR (COVID-19)":
+        compartments = ["S", "E", "I", "H", "R"]
     else:
         raise ValueError(f"Invalid model: {model}")
 

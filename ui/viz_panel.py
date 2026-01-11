@@ -8,6 +8,10 @@ from .plots import plot_contact_matrix, plot_population
 from helpers import contact_matrix_df
 from schemas import MODEL_COMPS
 from constants import DEFAULT_AGE_GROUPS
+from collections import OrderedDict
+
+ages_to_idx = {ag: i for i, ag in enumerate(DEFAULT_AGE_GROUPS)}
+
 
 def compute_metrics_with_deltas(selected_ids, reference_id, scenarios, results):
     base = compute_summary_metrics(selected_ids, scenarios, results)
@@ -17,19 +21,20 @@ def compute_metrics_with_deltas(selected_ids, reference_id, scenarios, results):
     ref_name = scenarios[reference_id].get("name", reference_id)
 
     ref = base[base["scenario"] == ref_name][
-        ["age_group", "peak_day", "peak_amplitude", "attack_rate"]
+        ["age_group", "peak_day", "peak_amplitude", "attack_rate", "total_infections"]
     ].rename(
         columns={
             "peak_day": "peak_day_ref",
             "peak_amplitude": "peak_amplitude_ref",
             "attack_rate": "attack_rate_ref",
+            "total_infections": "total_infections_ref",
         }
     )
 
     out = base.merge(ref, on="age_group", how="left")
 
     # deltas
-    for m in ["peak_day", "peak_amplitude", "attack_rate"]:
+    for m in ["peak_day", "peak_amplitude", "attack_rate", "total_infections"]:
         out[f"{m}_delta"] = out[m] - out[f"{m}_ref"]
 
         denom = out[f"{m}_ref"].replace({0.0: pd.NA})
@@ -43,32 +48,47 @@ def compute_summary_metrics(selected_ids, scenarios, results):
     rows = []
 
     for sid in selected_ids:
-        df = results[sid]
+        df_comp, df_trans = results[sid]["compartments"], results[sid]["transitions"]
         name = scenarios[sid].get("name", sid)
         cfg = scenarios[sid].get("config", {})
+        population = cfg.get("population", {})
         model = cfg.get("model", "")
         geo = cfg.get("geography", "")
 
-        t = df["t"].to_numpy()
+        t = df_comp["t"].to_numpy()
 
-        # Find I_* columns and derive age groups from them
-        i_cols = [c for c in df.columns if c.startswith("I_")]
-        age_groups = [c.split("_", 1)[1] for c in i_cols]
-
-        for ag in age_groups:
+        for ag in DEFAULT_AGE_GROUPS + ["total"]:
             i_col = f"I_{ag}"
             r_col = f"R_{ag}"
-            if i_col not in df.columns or r_col not in df.columns:
-                continue
+            h_col = f"H_{ag}"
 
-            I = df[i_col].to_numpy()
-            R = df[r_col].to_numpy()
+            e_to_i_col = f"E_to_I_{ag}"
+
+            I = df_comp[i_col].to_numpy()
+            R = df_comp[r_col].to_numpy()
+            E_to_I = df_trans[e_to_i_col].to_numpy()
 
             peak_idx = int(I.argmax())
             peak_day = int(t[peak_idx])
             peak_amp = float(I[peak_idx])
-            attack_rate = float(R[-1] - R[0])
+            total_infections = float(np.sum(E_to_I))
 
+            if ag == "total":
+                attack_rate = 100.0 * float(np.sum(E_to_I) / population.Nk.sum())
+            else:
+                attack_rate = 100.0 * float(np.sum(E_to_I) / population.Nk[ages_to_idx[ag]])
+
+            if model == "SEIHR (COVID-19)":
+                H = df_comp[h_col].to_numpy()
+                hospitalizations = float(np.sum(H))
+                if ag == "total":
+                    hospitalization_rate = 100.0 * float(np.sum(H) / population.Nk.sum())
+                else:
+                    hospitalization_rate = 100.0 * float(np.sum(H) / population.Nk[ages_to_idx[ag]])
+            else:
+                hospitalizations = None
+                hospitalization_rate = None
+            
             rows.append(
                 {
                     "scenario": name,
@@ -78,6 +98,9 @@ def compute_summary_metrics(selected_ids, scenarios, results):
                     "peak_day": peak_day,
                     "peak_amplitude": peak_amp,
                     "attack_rate": attack_rate,
+                    "total_infections": total_infections,
+                    "hospitalizations": hospitalizations,
+                    "hospitalization_rate": hospitalization_rate,
                 }
             )
 
@@ -98,86 +121,194 @@ def _get_run_scenarios():
     return run_ids, scenarios, results
 
 
-def _series_from_columns(cols):
+def render_spectral_radius_timeseries(dfs_dict: dict) -> None:
     """
-    Returns:
-      compartments: set[str]
-      age_groups: set[str] (may include "" for non-age-stratified)
-      pairs: set[tuple(compartment, age_group)]
+    Render spectral radius timeseries comparison across scenarios.
+    
+    Args:
+        dfs_dict: Dictionary of {scenario_name: spectral_radius_df}
+                 Each df has columns: t, rho, rho_perc, layer
     """
-    pairs = set()
-    for c in cols:
-        if c == "t":
+    if not dfs_dict:
+        st.warning("No spectral radius data available.")
+        return
+
+    st.caption("Compare contact matrix spectral radius across scenarios.")
+
+    # Prepare combined dataframe
+    all_data = []
+    layers_set = set()
+    
+    for scenario_name, df in dfs_dict.items():
+        if not isinstance(df, pd.DataFrame) or "t" not in df.columns:
             continue
-        if "_" in c:
-            comp, ag = c.split("_", 1)
-            pairs.add((comp, ag))
-        else:
-            pairs.add((c, ""))  # no age stratification
-    compartments = {p[0] for p in pairs}
-    age_groups = {p[1] for p in pairs}
-    return compartments, age_groups, pairs
-
-
-def _common_pairs(selected_ids, results):
-    common = None
-    for sid in selected_ids:
-        df = results[sid]
-        _, _, pairs = _series_from_columns(df.columns)
-        common = pairs if common is None else (common & pairs)
-    return common or set()
-
-
-def render_vaccination_timeseries(df: pd.DataFrame) -> None:
-    """
-    Expects in scenario cfg:
-      df  # DataFrame with columns: t, age groups...
-    """
-
-    if not isinstance(df, pd.DataFrame) or "t" not in df.columns:
-        st.warning("Vaccination schedule is not a valid dataframe with a 't' column.")
+        
+        required_cols = ["t", "rho", "rho_perc", "layer"]
+        if not all(col in df.columns for col in required_cols):
+            continue
+        
+        layers_set.update(df["layer"].unique())
+        df_copy = df.copy()
+        df_copy["scenario"] = scenario_name
+        all_data.append(df_copy)
+    
+    if not all_data:
+        st.warning("No valid spectral radius data to display.")
         return
-
-    age_cols = [c for c in df.columns if c != "t"]
-    if not age_cols:
-        st.warning("Vaccination schedule has no age-group columns.")
-        return
-
-    st.caption("Explore daily administered doses or cumulative doses by age group.")
-
-    mode = st.radio(
-        "View",
-        options=["Daily doses", "Cumulative doses"],
-        horizontal=True,
-        key=f"vax_plot_mode",
-    )
-
-    # Prepare long dataframe
-    plot_df = df[["t"] + age_cols].copy()
-
-    if mode == "Cumulative doses":
-        plot_df[age_cols] = plot_df[age_cols].cumsum()
-
-    long_df = plot_df.melt(id_vars="t", value_vars=age_cols, var_name="age_group", value_name="doses")
-
+    
+    combined_df = pd.concat(all_data, ignore_index=True)
+    
+    # Get available layers in desired order
+    layer_order = ["overall", "home", "school", "work", "community"]
+    available_layers = [layer for layer in layer_order if layer in layers_set]
+    
+    # Controls
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        mode = st.radio(
+            "View",
+            options=["Percentage change", "Absolute value"],
+            horizontal=True,
+            key="spectral_radius_mode",
+        )
+    
+    with col2:
+        selected_layer = st.selectbox(
+            "Contact layer",
+            options=available_layers,
+            index=0,  # Default to first available (typically "overall")
+            key="spectral_radius_layer"
+        )
+    
+    # Filter data for selected layer
+    plot_data = combined_df[combined_df["layer"] == selected_layer]
+    
+    # Determine which column to plot
+    y_col = "rho_perc" if mode == "Percentage change" else "rho"
+    y_title = "Spectral radius (% change)" if mode == "Percentage change" else "Spectral radius"
+    
+    # Create chart with all scenarios as different colored lines
     chart = (
-        alt.Chart(long_df)
-        .mark_area(opacity=0.75)  # stacked area gives "cool" rollout feel
+        alt.Chart(plot_data)
+        .mark_line(strokeWidth=2, point=True)
         .encode(
             x=alt.X("t:Q", title="Day"),
-            y=alt.Y("sum(doses):Q", title="Doses" if mode == "Daily doses" else "Cumulative doses"),
-            color=alt.Color("age_group:N", title="Age group"),
+            y=alt.Y(
+                f"{y_col}:Q", 
+                title=y_title
+            ),
+            color=alt.Color(
+                "scenario:N", 
+                title="Scenario",
+                scale=alt.Scale(scheme="set2")
+            ),
             tooltip=[
-                "age_group:N",
+                alt.Tooltip("scenario:N", title="Scenario"),
                 alt.Tooltip("t:Q", title="Day"),
-                alt.Tooltip("sum(doses):Q", title="Doses"),
+                alt.Tooltip(f"{y_col}:Q", title=y_title, format=".3f"),
             ],
         )
         .interactive()
     )
-
+    
     st.altair_chart(chart, use_container_width=True)
+    
 
+def render_vaccination_timeseries(dfs_dict: dict) -> None:
+    """
+    Render vaccination timeseries comparison across scenarios.
+    
+    Args:
+        dfs_dict: Dictionary of {scenario_name: vaccination_df}
+    """
+    if not dfs_dict:
+        st.warning("No vaccination schedules available.")
+        return
+
+    st.caption("Compare vaccination rollout across scenarios.")
+
+    # Controls
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        mode = st.radio(
+            "View",
+            options=["Daily doses", "Cumulative doses"],
+            horizontal=True,
+            key="vax_plot_mode",
+        )
+    
+    # Prepare combined long dataframe
+    all_data = []
+    age_groups_set = set()
+    
+    for scenario_name, df in dfs_dict.items():
+        if not isinstance(df, pd.DataFrame) or "t" not in df.columns:
+            continue
+        
+        age_cols = [c for c in df.columns if c != "t"]
+        if not age_cols:
+            continue
+        
+        age_groups_set.update(age_cols)
+        plot_df = df[["t"] + age_cols].copy()
+        
+        if mode == "Cumulative doses":
+            plot_df[age_cols] = plot_df[age_cols].cumsum()
+        
+        long_df = plot_df.melt(
+            id_vars="t", 
+            value_vars=age_cols, 
+            var_name="age_group", 
+            value_name="doses"
+        )
+        long_df["scenario"] = scenario_name
+        all_data.append(long_df)
+    
+    if not all_data:
+        st.warning("No valid vaccination schedules to display.")
+        return
+    
+    combined_df = pd.concat(all_data, ignore_index=True)
+        
+    # Age group selector
+    with col2:
+        selected_age = st.selectbox(
+            "Age group",
+            options=DEFAULT_AGE_GROUPS + ["total"],
+            key="vax_age_selector"
+        )
+    
+    # Filter data for selected age group
+    plot_data = combined_df[combined_df["age_group"] == selected_age]
+    
+    # Create chart with all scenarios as different colored lines
+    chart = (
+        alt.Chart(plot_data)
+        .mark_line(strokeWidth=2., point=False)
+        .encode(
+            x=alt.X("t:Q", title="Day"),
+            y=alt.Y(
+                "doses:Q", 
+                title="Doses" if mode == "Daily doses" else "Cumulative doses"
+            ),
+            color=alt.Color(
+                "scenario:N", 
+                title="Scenario", 
+                scale=alt.Scale(scheme="set2")
+            ),
+            tooltip=[
+                alt.Tooltip("scenario:N", title="Scenario"),
+                alt.Tooltip("t:Q", title="Day"),
+                alt.Tooltip("doses:Q", title="Doses", format=","),
+            ],
+        )
+        .interactive()
+    )
+    
+    st.altair_chart(chart, use_container_width=True)
+    
 
 def render_compartment_timeseries(compartments, selected_ids, scenarios, results):
 
@@ -195,7 +326,7 @@ def render_compartment_timeseries(compartments, selected_ids, scenarios, results
 
     rows = []
     for sid in selected_ids:
-        df = results[sid]
+        df = results[sid]["compartments"]
         if series_col not in df.columns:
             continue  # should not happen due to intersection logic
         name = scenarios[sid].get("name", sid)
@@ -210,14 +341,15 @@ def render_compartment_timeseries(compartments, selected_ids, scenarios, results
 
     plot_df = pd.concat(rows, ignore_index=True)
 
-    st.caption(f"Showing: {series_col}")
+    series_col_label = series_col.replace("_", " (") + ")"
+    st.caption(f"Showing: {series_col_label}")
 
     chart = (
         alt.Chart(plot_df)
         .mark_line()
         .encode(
             x=alt.X("t:Q", title="Day"),
-            y=alt.Y("value:Q", title=series_col),
+            y=alt.Y("value:Q", title=series_col_label),
             color=alt.Color("scenario:N", title="Scenario", scale=alt.Scale(scheme="set2")),
             tooltip=["scenario:N", "t:Q", "value:Q"],
         )
@@ -244,16 +376,26 @@ def render_metrics_tab(primary_id, selected_ids, scenarios, results):
     if metrics.empty:
         st.warning("No metrics available for the selected scenarios.")
         return
+    
+    model = scenarios[primary_id]["config"]["model"]
+    if model == "SEIHR (COVID-19)":
+        metrics_labels = {
+            "attack_rate": "Final Attack Rate (%)",
+            "total_infections": "Total Infections",
+            "peak_day": "Peak Prevalence Day",
+            "peak_amplitude": "Peak Prevalence Amplitude",
+            "hospitalizations": "Total Hospitalizations",
+            "hospitalization_rate": "Hospitalization Rate (%)",
+        }
+    else:
+        metrics_labels = {
+            "attack_rate": "Final Attack Rate (%)",
+            "total_infections": "Total Infections",
+            "peak_day": "Peak Prevalence Day",
+            "peak_amplitude": "Peak Prevalence Amplitude",
+        }
 
-    metric = st.selectbox(
-        "Metric",
-        options=["peak_day", "peak_amplitude", "attack_rate"],
-        format_func=lambda x: {
-            "peak_day": "Day of peak",
-            "peak_amplitude": "Peak amplitude",
-            "attack_rate": "Attack rate (final R)",
-        }[x],
-    )
+    metric = st.selectbox("Metric", options=metrics_labels.keys(), format_func=lambda x: metrics_labels[x])
 
     view = st.radio(
         "Display",
@@ -263,13 +405,13 @@ def render_metrics_tab(primary_id, selected_ids, scenarios, results):
 
     if view == "Absolute":
         value_col = metric
-        y_title = metric
+        y_title = metrics_labels[metric]
     elif view == "Δ vs reference":
         value_col = f"{metric}_delta"
-        y_title = f"{metric} (Δ)"
+        y_title = f"{metrics_labels[metric]} (Δ)"
     else:
         value_col = f"{metric}_pct_delta"
-        y_title = f"{metric} (%Δ)"
+        y_title = f"{metrics_labels[metric]} (%Δ)"
 
     ref_name = scenarios[primary_id].get("name", primary_id)
     st.caption(f"Reference: {ref_name}")
@@ -282,10 +424,14 @@ def render_metrics_tab(primary_id, selected_ids, scenarios, results):
         alt.Chart(metrics)
         .mark_bar()
         .encode(
-            x=alt.X("age_group:N", title="Age group"),
+            x=alt.X(
+                "age_group:N", 
+                title="Age group", 
+                sort=DEFAULT_AGE_GROUPS + ["total"]
+            ),
             y=alt.Y(f"{value_col}:Q", title=y_title),
             color=alt.Color("scenario:N", title="Scenario", scale=alt.Scale(scheme="set2")),
-            xOffset="scenario:N",  # grouped-bar trick
+            xOffset="scenario:N",  
             tooltip=[
                 "scenario:N",
                 "age_group:N",
@@ -432,12 +578,53 @@ def render_viz_panel(model: str, geography: str) -> None:
 
     with tab_ts:
         render_compartment_timeseries(MODEL_COMPS[model], selected_ids, scenarios, results)
+        # Download button of all timeseries
+        complete_df = pd.DataFrame()
+        for sid in selected_ids:
+            df = results[sid]["compartments"]
+            df["scenario"] = scenarios[sid].get("name", sid)
+            complete_df = pd.concat([complete_df, df], ignore_index=True)
+
+        # Download button
+        country_name = scenarios[selected_ids[0]]["config"]["geography"]
+        csv = complete_df.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            "Download timeseries (CSV)",
+            data=csv,
+            file_name=f"{country_name}_{model}_all_timeseries.csv",
+            mime="text/csv",
+        )
 
     with tab_metrics:
         render_metrics_tab(primary_id, selected_ids, scenarios, results)
 
+    with tab_contact_interventions:
+        dfs_dict = {scenarios[sid].get("name", sid): scenarios[sid]["config"]["spectral_radius_df"] for sid in selected_ids}
+        dfs_dict = OrderedDict(sorted(dfs_dict.items(), key=lambda item: item[0]))
+        render_spectral_radius_timeseries(dfs_dict)
+        print(dfs_dict)
+
     with tab_vaccinations:
-        render_vaccination_timeseries(scenarios[primary_id]["config"]["daily_doses_by_age"])
+        dfs_dict = {scenarios[sid].get("name", sid): scenarios[sid]["config"]["daily_doses_by_age"] for sid in selected_ids}
+        dfs_dict = OrderedDict(sorted(dfs_dict.items(), key=lambda item: item[0]))
+        render_vaccination_timeseries(dfs_dict)
+
+        complete_vax_df = pd.DataFrame()
+        for sid in selected_ids:
+            df = scenarios[sid]["config"]["daily_doses_by_age"]
+            df["scenario"] = scenarios[sid].get("name", sid)
+            complete_vax_df = pd.concat([complete_vax_df, df], ignore_index=True)
+
+        country_name = scenarios[selected_ids[0]]["config"]["geography"]
+        csv = complete_vax_df.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            "Download vaccination timeseries (CSV)",
+            data=csv,
+            file_name=f"{country_name}_{model}_all_vaccinations.csv",
+            mime="text/csv",
+            use_container_width=False,
+            help="Download vaccination timeseries data with age groups and daily doses"
+        )
 
     with tab_population: 
         render_demographic_and_contacts_tab(
