@@ -8,3 +8,4 @@ epydemix==1.0.1
 altair>=5.0
 numexpr>=2.8
 streamlit_js_eval
+plotly>=6.3.0
