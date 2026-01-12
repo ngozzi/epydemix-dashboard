@@ -87,6 +87,8 @@ def render_setup_panel(load_locations_fn, model_param_schemas):
     # Scenario controls (use model/geography)
     render_save_run_controls(model, geography)
 
+    st.caption("Change the settings below to create custom scenarios.")
+
     # Expanders
     with st.expander("Initial conditions", expanded=False):
         render_initial_conditions(model, INITIAL_CONDITION_DEFAULTS)
