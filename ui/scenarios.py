@@ -13,21 +13,11 @@ def render_save_run_controls(model: str, geography: str) -> None:
     ensure_scenario_state_defaults()
 
     st.text_input("Scenario name", key="scenario_name")
-
-    b1, b2 = st.columns(2, gap="small")
-    with b1:
-        if st.button("Save", use_container_width=True):
-            if st.session_state.get("workspace") is None:
-                st.session_state["workspace"] = {"model": model, "geography": geography}
-            sid = save_current_scenario(model, geography)
-            st.rerun()
-
-    with b2:
-        if st.button("Run", type="primary", use_container_width=True):
-            if st.session_state.get("workspace") is None:
-                st.session_state["workspace"] = {"model": model, "geography": geography}
-            sid = run_current_scenario(model, geography)
-            st.rerun()
+    if st.button("Run", type="primary", use_container_width=True):
+        if st.session_state.get("workspace") is None:
+            st.session_state["workspace"] = {"model": model, "geography": geography}
+        sid = run_current_scenario(model, geography)
+        st.rerun()
 
 
 def render_saved_scenarios_list() -> None:
@@ -50,25 +40,16 @@ def render_saved_scenarios_list() -> None:
         name = item.get("name", sid)
 
         with st.container(border=True):
-            row = st.columns([0.35, 0.2, 0.2, 0.25], gap="small")
+            row = st.columns([0.35, 0.2, 0.2], gap="small")
 
             with row[0]:
                 st.markdown(f"**{name}**")
                 st.caption(f"ID: {sid}")
 
             with row[1]:
-                if st.button("Run", key=f"sc_run_{sid}", use_container_width=True):
-                    ensure_results_defaults()
-
-                    cfg = item.get("config", {})
-                    df = run_scenario(cfg)
-                    st.session_state["results"][sid] = df
-                    st.session_state["last_run_scenario_id"] = sid
-
-            with row[2]:
                 view = st.button("View", key=f"sc_view_{sid}", use_container_width=True)
 
-            with row[3]:
+            with row[2]:
                 if st.button("Remove", key=f"sc_rm_{sid}", use_container_width=True):
                     remove_id = sid
 
