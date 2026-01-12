@@ -188,7 +188,7 @@ The default parameters are calibrated for COVID-19:
 - **Incubation period**: 3 days
 - **Infectious period**: 2.5 days
 - **Length of hospital stay**: 5 days
-- **Probability of hospitalization by age group**: 0.01, 0.02, 0.03, 0.04, 0.05 from Ref XXX. 
+- **Probability of hospitalization given infection by age group**: 0.2%, 0.5%, 1.5%, 5%, 18% 
 
 We stress that the probability of hospitalization is age-dependent and can be specified by the user.
 Users can also specify the length of hospital stay, or change the value of other parameters to align the model to other diseases.

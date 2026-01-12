@@ -189,7 +189,7 @@ def run_seihr_stub(scenario: dict) -> pd.DataFrame:
     # pH 
     pH = []
     for i in range(len(age_groups)):
-        pH.append(scenario["model_params"][f"ph_{i}"])
+        pH.append(scenario["model_params"][f"ph_{i}"] / 100.)
     pH = convert_to_2Darray(pH)
 
     model.add_parameter(

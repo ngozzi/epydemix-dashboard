@@ -123,17 +123,17 @@ MODEL_PARAM_SCHEMAS = {
            "type": "float",
            "min": 0.,
            "max": 25.0,
-           "step": 0.5,
+           "step": 1.0,
            "default": 5.0, 
         },  
         {
             "key": "ph",
-            "label": "Probability of hospitalization",
+            "label": "Probability of hospitalization (%)",
             "type": "by_age_float",
             "min": 0.,
-            "max": 1.0,
-            "step": 0.005,
-            "default": [0.01, 0.02, 0.03, 0.04, 0.05],
+            "max": 100.0,
+            "step": 0.1,
+            "default": [0.2, 0.5, 1.5, 5., 18.],
         }
     ]
 }
