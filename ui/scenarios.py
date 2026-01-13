@@ -31,8 +31,8 @@ def render_saved_scenarios_list() -> None:
         st.info("No saved scenarios yet.")
         return
 
-    st.markdown("**Saved scenarios (snapshots)**")
-    st.caption("To modify a scenario, change inputs and save a new snapshot.")
+    st.markdown("**Saved scenarios**")
+    st.caption("Click 'View' to view its details or 'Remove' to delete it.")
 
     remove_id = None
 
