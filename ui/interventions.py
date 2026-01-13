@@ -47,7 +47,7 @@ def render_contact_interventions() -> None:
                         "reduction_pct": int(red_pct),
                     }
                 )
-                st.rerun()
+                #st.rerun()
 
     items = st.session_state.get("contact_interventions", [])
 
@@ -59,13 +59,7 @@ def render_contact_interventions() -> None:
     remove_idx = None
     for idx, it in enumerate(items):
         with st.container(border=True):
-            header = st.columns([0.65, 0.35])
-            with header[0]:
-                st.markdown(f"**{_contact_summary(it)}**")
-            with header[1]:
-                if st.button("Remove", key=f"ci_remove_{idx}", use_container_width=True):
-                    remove_idx = idx
+            st.markdown(f"**{_contact_summary(it)}**")
 
     if remove_idx is not None:
         st.session_state["contact_interventions"].pop(remove_idx)
-        st.rerun()

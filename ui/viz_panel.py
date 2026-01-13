@@ -602,7 +602,6 @@ def render_viz_panel(model: str, geography: str) -> None:
         dfs_dict = {scenarios[sid].get("name", sid): scenarios[sid]["config"]["spectral_radius_df"] for sid in selected_ids}
         dfs_dict = OrderedDict(sorted(dfs_dict.items(), key=lambda item: item[0]))
         render_spectral_radius_timeseries(dfs_dict)
-        print(dfs_dict)
 
     with tab_vaccinations:
         dfs_dict = {scenarios[sid].get("name", sid): scenarios[sid]["config"]["daily_doses_by_age"] for sid in selected_ids}
