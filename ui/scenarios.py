@@ -12,7 +12,7 @@ def render_save_run_controls(model: str, geography: str) -> None:
     """
     ensure_scenario_state_defaults()
 
-    st.text_input("Scenario name", key="scenario_name")
+    st.text_input("Scenario name", key="scenario_name", help="Give your scenario a name to identify it.")
     if st.button("Run", type="primary", use_container_width=True):
         if st.session_state.get("workspace") is None:
             st.session_state["workspace"] = {"model": model, "geography": geography}
