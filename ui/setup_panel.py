@@ -60,6 +60,7 @@ def render_setup_panel(load_locations_fn, model_param_schemas):
             key="selected_model",
             on_change=_on_model_change,
             disabled=workspace_active,
+            help="Select the model to use for the simulation.",
         )
     
     with c2:
