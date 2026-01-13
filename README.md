@@ -1,12 +1,12 @@
 # Epydemix Simulation Dashboard
 
-[![Streamlit App](https://img.shields.io/badge/Live%20Demo-Streamlit-green?logo=streamlit)](https://epydemix-dashboard.streamlit.app/)
+[![Streamlit App](https://img.shields.io/badge/Live%20Demo-Streamlit-green?logo=streamlit)](https://epyscenario.streamlit.app/)
 
 ## Overview
 
-**epydemix-dashboard** is an open-source Streamlit dashboard for visualizing and interacting with Epydemix simulation results. This project makes it easy to explore epidemic modeling data, compare scenarios, and interpret key metrics — all from an intuitive web interface.
+**epyscenario-dashboard** is an open-source Streamlit dashboard for visualizing and interacting with Epydemix simulation results. This project makes it easy to explore epidemic modeling data, compare scenarios, and interpret key metrics — all from an intuitive web interface.
 
-You can try the dashboard now: [epydemix-dashboard.streamlit.app](https://epydemix-dashboard.streamlit.app/)
+You can try the dashboard now: [epyscenario.streamlit.app](https://epyscenario.streamlit.app/)
 
 ## Features
 
@@ -52,7 +52,7 @@ Check the repository for configuration options, data input requirements, and add
 ## Live Demo
 
 You can explore a live version of this dashboard at:  
-👉 **[epydemix-dashboard.streamlit.app](https://epydemix-dashboard.streamlit.app/)**
+👉 **[epyscenario.streamlit.app](https://epyscenario.streamlit.app/)**
 
 ## Contributing & Extensions
 
