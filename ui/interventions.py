@@ -51,7 +51,7 @@ def render_contact_interventions() -> None:
 
     items = st.session_state.get("contact_interventions", [])
 
-    st.markdown("**Added interventions**")
+    st.markdown("**Added contact interventions**")
     if not items:
         st.info("No contact interventions added yet.")
         return
