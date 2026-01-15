@@ -59,7 +59,13 @@ def render_contact_interventions() -> None:
     remove_idx = None
     for idx, it in enumerate(items):
         with st.container(border=True):
-            st.markdown(f"**{_contact_summary(it)}**")
+            header = st.columns([0.65, 0.35])
+            with header[0]:
+                st.markdown(f"**{_contact_summary(it)}**")
+            with header[1]:
+                if st.button("Remove", key=f"ci_remove_{idx}", use_container_width=True):
+                    remove_idx = idx
 
     if remove_idx is not None:
-        st.session_state["contact_interventions"].pop(remove_idx)
+        removed = st.session_state["contact_interventions"].pop(remove_idx)
+        st.info(f"Removed intervention: {removed.get('layer', 'Layer')} from {removed.get('start_day', 'Start day')} to {removed.get('end_day', 'End day')}")

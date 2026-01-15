@@ -150,12 +150,17 @@ def render_vaccination_campaigns(model: str, age_groups: list[str] | None = None
     remove_idx = None
     for idx, it in enumerate(items):
         with st.container(border=True):
-            st.markdown(f"**{_vax_summary(it)}**")
+            row = st.columns([0.78, 0.22], gap="small")
+            with row[0]:
+                st.markdown(f"**{_vax_summary(it)}**")
+            with row[1]:
+                if st.button("Remove", key=f"vx_remove_{idx}", use_container_width=True):
+                    remove_idx = idx
 
             # Optional: view details inline without expander nesting
             if st.button("View details", key=f"vx_view_{idx}"):
                 st.json(it)
 
     if remove_idx is not None:
-        st.session_state["vaccination_campaigns"].pop(remove_idx)
-        st.rerun()
+        removed = st.session_state["vaccination_campaigns"].pop(remove_idx)
+        st.info(f"Removed: {removed.get('name', 'Campaign')}")
