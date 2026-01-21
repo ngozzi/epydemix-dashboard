@@ -43,7 +43,7 @@ MODEL_PARAM_SCHEMAS = {
             "min": 0.1,
             "max": 20.0,
             "step": 0.1,
-            "default": 2.0,
+            "default": 1.5,
         },
         {
             "key": "incubation_period",
@@ -141,6 +141,6 @@ MODEL_PARAM_SCHEMAS = {
 
 INITIAL_CONDITION_DEFAULTS = {
     "SEIR (Measles)": {"infected_pct": 0.1, "immune_pct": 85.0},
-    "SEIRS (Influenza)": {"infected_pct": 0.1, "immune_pct": 15.0},
+    "SEIRS (Influenza)": {"infected_pct": 0.1, "immune_pct": 25.0},
     "SEIHR (COVID-19)": {"infected_pct": 0.1, "immune_pct": 25.0},
 }
