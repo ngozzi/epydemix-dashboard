@@ -22,7 +22,7 @@ def render_contact_interventions() -> None:
 
         c1, c2, c3, c4 = st.columns([1.25, 1, 1, 1.4], gap="small")
         with c1:
-            layer = st.selectbox("Layer", options=LAYER_NAMES, key="_ci_new_layer")
+            layer = st.selectbox("Layer", options=["all"] + LAYER_NAMES, key="_ci_new_layer")
         with c2:
             start_day = st.number_input("Start day", min_value=0, max_value=10_000, step=1, key="_ci_new_start")
         with c3:

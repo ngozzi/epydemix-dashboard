@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from epydemix.model import EpiModel
 from epydemix.utils import convert_to_2Darray
-from constants import START_DATE, N_SIM, DEFAULT_AGE_GROUPS
+from constants import START_DATE, N_SIM, DEFAULT_AGE_GROUPS, LAYER_NAMES
 from datetime import timedelta, datetime
 
 SEASONALITY_OPTIONS = {
@@ -212,12 +212,21 @@ def run_seihr_stub(scenario: dict) -> pd.DataFrame:
 
     # Apply Contact interventions
     for intervention in scenario["contact_interventions"]:
-        model.add_intervention(
-                layer_name=intervention["layer"],
-                start_date=START_DATE + timedelta(days=intervention["start_day"]),
-                end_date=START_DATE + timedelta(days=intervention["end_day"]),
-                reduction_factor=1.0 - (intervention["reduction_pct"] / 100.)
-            )
+        if intervention["layer"] == "all":
+            for layer in LAYER_NAMES:
+                model.add_intervention(
+                    layer_name=layer,
+                    start_date=START_DATE + timedelta(days=intervention["start_day"]),
+                    end_date=START_DATE + timedelta(days=intervention["end_day"]),
+                    reduction_factor=1.0 - (intervention["reduction_pct"] / 100.)
+                )
+        else:
+            model.add_intervention(
+                    layer_name=intervention["layer"],
+                    start_date=START_DATE + timedelta(days=intervention["start_day"]),
+                    end_date=START_DATE + timedelta(days=intervention["end_day"]),
+                    reduction_factor=1.0 - (intervention["reduction_pct"] / 100.)
+                )
 
     # Run Simulations 
     results = model.run_simulations(
@@ -286,12 +295,21 @@ def run_seirs_stub(scenario: dict) -> pd.DataFrame:
 
     # Apply Contact interventions
     for intervention in scenario["contact_interventions"]:
-        model.add_intervention(
-                layer_name=intervention["layer"],
-                start_date=START_DATE + timedelta(days=intervention["start_day"]),
-                end_date=START_DATE + timedelta(days=intervention["end_day"]),
-                reduction_factor=1.0 - (intervention["reduction_pct"] / 100.)
-            )
+        if intervention["layer"] == "all":
+            for layer in LAYER_NAMES:
+                model.add_intervention(
+                    layer_name=layer,
+                    start_date=START_DATE + timedelta(days=intervention["start_day"]),
+                    end_date=START_DATE + timedelta(days=intervention["end_day"]),
+                    reduction_factor=1.0 - (intervention["reduction_pct"] / 100.)
+                )
+        else:
+            model.add_intervention(
+                    layer_name=intervention["layer"],
+                    start_date=START_DATE + timedelta(days=intervention["start_day"]),
+                    end_date=START_DATE + timedelta(days=intervention["end_day"]),
+                    reduction_factor=1.0 - (intervention["reduction_pct"] / 100.)
+                )
 
     # Run Simulations 
     results = model.run_simulations(
@@ -350,12 +368,21 @@ def run_seir_stub(scenario: dict) -> pd.DataFrame:
 
     # Apply Contact interventions
     for intervention in scenario["contact_interventions"]:
-        model.add_intervention(
-                layer_name=intervention["layer"],
-                start_date=START_DATE + timedelta(days=intervention["start_day"]),
-                end_date=START_DATE + timedelta(days=intervention["end_day"]),
-                reduction_factor=1.0 - (intervention["reduction_pct"] / 100.)
-            )
+        if intervention["layer"] == "all":
+            for layer in LAYER_NAMES:
+                model.add_intervention(
+                    layer_name=layer,
+                    start_date=START_DATE + timedelta(days=intervention["start_day"]),
+                    end_date=START_DATE + timedelta(days=intervention["end_day"]),
+                    reduction_factor=1.0 - (intervention["reduction_pct"] / 100.)
+                )
+        else:
+            model.add_intervention(
+                    layer_name=intervention["layer"],
+                    start_date=START_DATE + timedelta(days=intervention["start_day"]),
+                    end_date=START_DATE + timedelta(days=intervention["end_day"]),
+                    reduction_factor=1.0 - (intervention["reduction_pct"] / 100.)
+                )
 
     # Run Simulations 
     results = model.run_simulations(

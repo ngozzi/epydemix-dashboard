@@ -114,12 +114,21 @@ def build_current_config(model: str, geography: str) -> Dict[str, Any]:
     epi_model = EpiModel() 
     epi_model.set_population(population)
     for intervention in st.session_state.get("contact_interventions", {}):
-        epi_model.add_intervention(
-                layer_name=intervention["layer"],
-                start_date=START_DATE + timedelta(days=intervention["start_day"]),
-                end_date=START_DATE + timedelta(days=intervention["end_day"]),
-                reduction_factor=1.0 - (intervention["reduction_pct"] / 100.)
-            )
+        if intervention["layer"] == "all":
+            for layer in LAYER_NAMES:
+                epi_model.add_intervention(
+                    layer_name=layer,
+                    start_date=START_DATE + timedelta(days=intervention["start_day"]),
+                    end_date=START_DATE + timedelta(days=intervention["end_day"]),
+                    reduction_factor=1.0 - (intervention["reduction_pct"] / 100.)
+                )
+        else:
+            epi_model.add_intervention(
+                    layer_name=intervention["layer"],
+                    start_date=START_DATE + timedelta(days=intervention["start_day"]),
+                    end_date=START_DATE + timedelta(days=intervention["end_day"]),
+                    reduction_factor=1.0 - (intervention["reduction_pct"] / 100.)
+                )
     simulation_dates = compute_simulation_dates(START_DATE, START_DATE + timedelta(days=int(st.session_state.get("sim_length", 250))))
     epi_model.compute_contact_reductions(simulation_dates)
 
