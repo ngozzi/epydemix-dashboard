@@ -21,20 +21,22 @@ def compute_metrics_with_deltas(selected_ids, reference_id, scenarios, results):
     ref_name = scenarios[reference_id].get("name", reference_id)
 
     ref = base[base["scenario"] == ref_name][
-        ["age_group", "peak_day", "peak_amplitude", "attack_rate", "total_infections"]
+        ["age_group", "peak_day", "peak_amplitude", "attack_rate", "total_infections", "hospitalizations", "hospitalization_rate"]
     ].rename(
         columns={
             "peak_day": "peak_day_ref",
             "peak_amplitude": "peak_amplitude_ref",
             "attack_rate": "attack_rate_ref",
             "total_infections": "total_infections_ref",
+            "hospitalizations": "hospitalizations_ref",
+            "hospitalization_rate": "hospitalization_rate_ref",
         }
     )
 
     out = base.merge(ref, on="age_group", how="left")
 
     # deltas
-    for m in ["peak_day", "peak_amplitude", "attack_rate", "total_infections"]:
+    for m in ["peak_day", "peak_amplitude", "attack_rate", "total_infections", "hospitalizations", "hospitalization_rate"]:
         out[f"{m}_delta"] = out[m] - out[f"{m}_ref"]
 
         denom = out[f"{m}_ref"].replace({0.0: pd.NA})
