@@ -7,7 +7,7 @@ def show_dashboard_header():
     st.markdown(f"""
                 <style>
                 .title-row {{ display:flex; align-items:center; gap:8px; }}
-                .title-row img {{ height:158px; }}
+                .title-row img {{ height:115px; }}
                 </style>
                 <div class="title-row">
                 <img src="{epyscenario}" alt="EpyScenario Dashboard">
