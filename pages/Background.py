@@ -5,6 +5,7 @@ from layout.header import show_dashboard_header
 from layout.sidebar import render_sidebar
 from layout.logos import show_logos
 from pathlib import Path
+from version import __version__
 
 
 st.set_page_config(
@@ -26,7 +27,7 @@ st.markdown("""
 show_dashboard_header()
 render_sidebar()
 
-st.markdown("## Background & Documentation")
+st.markdown(f"## Background & Documentation <span style='color: gray; font-weight: normal; font-size: 0.6em;'>v{__version__}</span>", unsafe_allow_html=True)
 
 st.markdown("""
 This dashboard provides an interactive platform for exploring epidemic scenarios through 

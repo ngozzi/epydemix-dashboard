@@ -1,30 +1,28 @@
-# Epydemix Simulation Dashboard
+<p align="center">
+  <img src="assets/epyscenario.svg" alt="EpyScenario" width="400">
+</p>
 
-[![Streamlit App](https://img.shields.io/badge/Live%20Demo-Streamlit-green?logo=streamlit)](https://epyscenario.streamlit.app/)
+<p align="center">
+  <a href="https://scenario.epydemix.org/"><img src="https://img.shields.io/badge/Live%20Demo-scenario.epydemix.org-blue" alt="Live Demo"></a>
+</p>
 
 ## Overview
 
-**epyscenario-dashboard** is an open-source Streamlit dashboard for visualizing and interacting with Epydemix simulation results. This project makes it easy to explore epidemic modeling data, compare scenarios, and interpret key metrics — all from an intuitive web interface.
+**EpyScenario** is an interactive platform for exploring epidemic scenarios using age-structured compartmental models. Built on [Epydemix](https://epydemix.org), it enables scenario comparison with realistic contact patterns for 400+ geographies.
 
-You can try the dashboard now: [epyscenario.streamlit.app](https://epyscenario.streamlit.app/)
+Try it now: [scenario.epydemix.org](https://scenario.epydemix.org/)
 
 ## Features
 
-- 📊 **Interactive Visualization**: Explore Epydemix simulation results with dynamic charts and controls.
-- 🔍 **Scenario Exploration**: Adjust model parameters and instantly see their impact.
-- 🧮 **Key Metrics**: Track epidemic statistics and compare outcomes.
-- ⚡ **Streamlit Powered**: Fast, responsive web application, easy to deploy and extend.
-- 🛠️ **Extensible**: Designed so you can fork and build your own dashboards for other simulation models!
-
-## Technologies
-
-- **Language:** Python
-- **Framework:** [Streamlit](https://streamlit.io/)
-- Other dependencies may be included; see [`requirements.txt`](requirements.txt) for details.
+- **Epidemic Models**: SEIR (measles), SEIRS with seasonality (influenza), SEIHR with hospitalization (COVID-19)
+- **Contact Interventions**: Model NPIs like school closures, work-from-home, and social distancing across home, school, work, and community settings
+- **Vaccination Campaigns**: Age-targeted vaccination with configurable efficacy, coverage, and rollout shapes
+- **Scenario Comparison**: Run and compare multiple scenarios side-by-side
+- **Real-World Data**: Contact matrices for 400+ geographies with age-specific mixing patterns
 
 ## Installation
 
-To run the dahsboard locally you need to follow these steps.
+To run the dashboard locally:
 
 1. **Clone the repository:**
     ```bash
@@ -43,24 +41,22 @@ To run the dahsboard locally you need to follow these steps.
 
 ## Usage
 
-Launch the Streamlit dashboard locally:
+Launch the dashboard locally:
 ```bash
-streamlit run main.py
+streamlit run Dashboard.py
 ```
-Check the repository for configuration options, data input requirements, and additional usage instructions.
 
 ## Live Demo
 
-You can explore a live version of this dashboard at:  
-👉 **[epyscenario.streamlit.app](https://epyscenario.streamlit.app/)**
+Try the live version at [scenario.epydemix.org](https://scenario.epydemix.org/)
 
-## Contributing & Extensions
+## Contributing
 
-We welcome contributions and proposals for new features or extensions! If you'd like to:
+Contributions are welcome! You can:
 
-- Propose an extension or improvement, please open an [issue](https://github.com/ngozzi/epydemix-dashboard/issues) or [pull request](https://github.com/ngozzi/epydemix-dashboard/pulls).
-- Fork this repository and build your own dashboard for your simulation model — we encourage creative reuse!
-- Help with documentation, bug fixes, or general improvements.
+- Open an [issue](https://github.com/ngozzi/epydemix-dashboard/issues) to report bugs or suggest features
+- Submit a [pull request](https://github.com/ngozzi/epydemix-dashboard/pulls) with improvements
+- Fork and adapt for your own simulation models
 
 ## License
 
