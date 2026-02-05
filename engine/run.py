@@ -155,6 +155,7 @@ def compute_seasonality_factor(start_date, end_date, days_to_max, seasonality_mi
     simulation_dates = compute_simulation_dates(start_date, end_date, dt=dt)
 
     for day in simulation_dates:
+        day = pd.Timestamp(day)
         day_max_yearly = datetime(day.year, day_max.month, day_max.day)  # Peak seasonality date
         s_r = seasonality_min / seasonality_max
         factor = 0.5 * ((1 - s_r) * np.sin(2 * np.pi / 365 * (day - day_max_yearly).days + 0.5 * np.pi) + 1 + s_r)

@@ -202,6 +202,5 @@ def daily_doses_by_age(
 
     # Expand rows based on simulation dates (duplicate each day's row by its step count)
     df = df.loc[df.index.repeat(repeat_counts)].reset_index(drop=True)
-    #df["t"] = np.arange(len(df))
 
     return df
