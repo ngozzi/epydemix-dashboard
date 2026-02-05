@@ -74,16 +74,29 @@ def render_setup_panel(load_locations_fn, model_param_schemas):
             disabled=workspace_active,
         )
 
-    # Simulation length
-    st.number_input(
-        "Simulation length (days)",
-        min_value=1,
-        max_value=5000,
-        value=250,
-        step=10,
-        help="Total duration of the simulation.",
-        key="sim_length",
-    )
+    # Simulation length and time step
+    c1, c2 = st.columns(2)
+    with c1:
+        st.number_input(
+            "Simulation length (days)",
+            min_value=1,
+            max_value=5000,
+            value=250,
+            step=10,
+            help="Total duration of the simulation.",
+            key="sim_length",
+        )
+    
+    with c2:
+        st.number_input(
+            "$\Delta t$ (days)",
+            min_value=0.1,
+            max_value=1.0,
+            value=0.3,
+            step=0.1,
+            help="Time step for the simulation. Smaller values result in more accurate simulations but require more computational resources.",
+            key="time_step",
+        )
 
     # Scenario controls (use model/geography)
     render_save_run_controls(model, geography)

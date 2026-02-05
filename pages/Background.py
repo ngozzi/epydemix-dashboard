@@ -48,9 +48,26 @@ The EpyScenario Dashboard provides an accessible interface for:
 3. **Scenario comparison**: Run multiple scenarios and compare outcomes side-by-side
 4. **Visualization**: Explore epidemic trajectories, summary metrics, and demographic patterns
 
-The underlying approach uses age-structured stochastic compartmental models to represent 
-disease transmission, with contact patterns between age groups derived from synthetic social 
+The underlying approach uses age-structured stochastic compartmental models to represent
+disease transmission, with contact patterns between age groups derived from synthetic social
 contact data for over 400 real-world geographies.
+
+### Simulation Engine
+
+Simulations are **stochastic**, implemented via **chain binomial processes**—the paradigm currently
+supported by epydemix. This means that each simulation run produces different trajectories due to
+random sampling of transmission events. To simplify the user interface, the dashboard displays the
+**median across multiple runs**. Future versions will include confidence intervals to better
+visualize the uncertainty in epidemic projections.
+
+Users can configure the **time step (Δt)**, which controls the integration step of the simulation:
+
+- **Smaller dt** (e.g., 0.1–0.3): More accurate results, particularly for fast-spreading diseases,
+  but slower computation
+- **Larger dt** (e.g., 0.5–1.0): Faster simulations, but risk of numerical instability or
+  overshooting when transmission rates are high
+
+For most scenarios, the default value provides a good balance between accuracy and performance.
 """)
 
 st.divider()

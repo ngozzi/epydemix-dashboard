@@ -77,7 +77,7 @@ def _stable_hash_config(cfg: Dict[str, Any]) -> str:
     cfg_for_hash = {
         k: v
         for k, v in cfg.items()
-        if k not in {"population", "daily_doses_by_age", "spectral_radius_df"}  
+        if k not in {"population", "daily_doses_by_age", "daily_doses_by_age_daily", "spectral_radius_df"}  
     }
     payload = json.dumps(cfg_for_hash, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:10]
@@ -108,8 +108,10 @@ def build_current_config(model: str, geography: str) -> Dict[str, Any]:
         Nk=population.Nk,
         sim_length=int(st.session_state.get("sim_length", 250)),
         age_groups=DEFAULT_AGE_GROUPS,
+        dt=float(st.session_state.get("time_step", 0.3)),
     )
-
+    df_doses_daily = df_doses.groupby(["t"], as_index=False).mean().reset_index()
+    
     # compute spectral radius of contact matrix
     epi_model = EpiModel() 
     epi_model.set_population(population)
@@ -152,12 +154,14 @@ def build_current_config(model: str, geography: str) -> Dict[str, Any]:
         "geography": geography,
         "population": deepcopy(population),
         "sim_length": int(st.session_state.get("sim_length", 250)),
+        "time_step": float(st.session_state.get("time_step", 0.3)),
         "initial_conditions": deepcopy(st.session_state.get("initial_conditions", {})),
         "model_params": deepcopy(st.session_state.get("model_params", {}).get(model, {})),
         "contact_interventions": deepcopy(st.session_state.get("contact_interventions", [])),
         "vaccination_settings": deepcopy(st.session_state.get("vaccination_settings", {})),
         "vaccination_campaigns": deepcopy(st.session_state.get("vaccination_campaigns", [])),
         "daily_doses_by_age": deepcopy(df_doses),
+        "daily_doses_by_age_daily": deepcopy(df_doses_daily),
         "spectral_radius_df": deepcopy(spectral_radius_df),
     }
     return cfg

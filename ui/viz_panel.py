@@ -4,6 +4,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import altair as alt
+from copy import deepcopy
 from .plots import plot_contact_matrix, plot_population
 from helpers import contact_matrix_df
 from schemas import MODEL_COMPS
@@ -254,12 +255,12 @@ def render_vaccination_timeseries(dfs_dict: dict) -> None:
             continue
         
         age_groups_set.update(age_cols)
-        plot_df = df[["t"] + age_cols].copy()
-        
+        plot_df_vax = df[["t"] + age_cols].copy()
+
         if mode == "Cumulative doses":
-            plot_df[age_cols] = plot_df[age_cols].cumsum()
-        
-        long_df = plot_df.melt(
+            plot_df_vax[age_cols] = plot_df_vax[age_cols].cumsum()
+
+        long_df = plot_df_vax.melt(
             id_vars="t", 
             value_vars=age_cols, 
             var_name="age_group", 
@@ -273,7 +274,7 @@ def render_vaccination_timeseries(dfs_dict: dict) -> None:
         return
     
     combined_df = pd.concat(all_data, ignore_index=True)
-        
+    
     # Age group selector
     with col2:
         selected_age = st.selectbox(
@@ -401,7 +402,7 @@ def render_metrics_tab(primary_id, selected_ids, scenarios, results):
 
     view = st.radio(
         "Display",
-        options=["Absolute", "Δ vs reference", "%Δ vs reference"],
+        options=["Absolute", "Δ vs reference", "Relative Δ vs reference"],
         horizontal=True,
     )
 
@@ -413,7 +414,7 @@ def render_metrics_tab(primary_id, selected_ids, scenarios, results):
         y_title = f"{metrics_labels[metric]} (Δ)"
     else:
         value_col = f"{metric}_pct_delta"
-        y_title = f"{metrics_labels[metric]} (%Δ)"
+        y_title = f"{metrics_labels[metric]} (Relative Δ)"
 
     ref_name = scenarios[primary_id].get("name", primary_id)
     st.caption(f"Reference: {ref_name}")
@@ -606,13 +607,13 @@ def render_viz_panel(model: str, geography: str) -> None:
         render_spectral_radius_timeseries(dfs_dict)
 
     with tab_vaccinations:
-        dfs_dict = {scenarios[sid].get("name", sid): scenarios[sid]["config"]["daily_doses_by_age"] for sid in selected_ids}
+        dfs_dict = {scenarios[sid].get("name", sid): scenarios[sid]["config"]["daily_doses_by_age_daily"] for sid in selected_ids}
         dfs_dict = OrderedDict(sorted(dfs_dict.items(), key=lambda item: item[0]))
         render_vaccination_timeseries(dfs_dict)
 
         complete_vax_df = pd.DataFrame()
         for sid in selected_ids:
-            df = scenarios[sid]["config"]["daily_doses_by_age"]
+            df = scenarios[sid]["config"]["daily_doses_by_age_daily"]
             df["scenario"] = scenarios[sid].get("name", sid)
             complete_vax_df = pd.concat([complete_vax_df, df], ignore_index=True)
 

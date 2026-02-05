@@ -4,7 +4,11 @@ import numpy as np
 from pathlib import Path
 import base64
 from epydemix.population import load_epydemix_population, Population
+from epydemix.utils import compute_simulation_dates
+from collections import Counter
 from typing import Sequence, Any
+from constants import START_DATE
+from datetime import timedelta
 
 
 @st.cache_data
@@ -81,6 +85,7 @@ def daily_doses_by_age(
     Nk: Sequence[float] | np.ndarray,
     sim_length: int,
     age_groups: list[str],
+    dt: float,
 ) -> pd.DataFrame:
     """
     Compute daily vaccine doses by age group, summed across all campaigns.
@@ -105,6 +110,9 @@ def daily_doses_by_age(
     age_groups:
         Age-group labels in the same order as Nk. Used to map campaign targets.
 
+    dt:
+        Time step for the simulation.
+
     Returns
     -------
     pd.DataFrame:
@@ -119,6 +127,12 @@ def daily_doses_by_age(
     if Nk_arr.shape[0] != len(age_groups):
         print(Nk_arr.shape[0], len(age_groups))
         raise ValueError("Nk length must match age_groups length")
+
+    # Compute simulation dates and count steps per day
+    end_date = START_DATE + timedelta(days=sim_length)
+    simulation_dates = compute_simulation_dates(START_DATE, end_date, dt=dt)
+    day_counts = Counter(pd.Timestamp(d).date() for d in simulation_dates)
+    repeat_counts = [day_counts.get((START_DATE + timedelta(days=i)).date(), 1) for i in range(sim_length + 1)]
 
     # Output array: (sim_length, n_age)
     doses = np.zeros((sim_length + 1, len(age_groups)), dtype=float)
@@ -185,4 +199,9 @@ def daily_doses_by_age(
     df[age_groups] = df[age_groups].astype(int)
     df["total"] = df[age_groups].sum(axis=1)
     df.insert(0, "t", np.arange(sim_length + 1, dtype=int))
+
+    # Expand rows based on simulation dates (duplicate each day's row by its step count)
+    df = df.loc[df.index.repeat(repeat_counts)].reset_index(drop=True)
+    #df["t"] = np.arange(len(df))
+
     return df

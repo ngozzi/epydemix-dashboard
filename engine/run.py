@@ -6,7 +6,7 @@ from typing import Callable, Optional, Sequence, Any
 import numpy as np
 import pandas as pd
 from epydemix.model import EpiModel
-from epydemix.utils import convert_to_2Darray
+from epydemix.utils import convert_to_2Darray, compute_simulation_dates
 from constants import START_DATE, N_SIM, DEFAULT_AGE_GROUPS, LAYER_NAMES
 from datetime import timedelta, datetime
 
@@ -147,13 +147,14 @@ def compute_beta(model, R0, C, params):
         raise ValueError(f"Model {model} not supported")
 
 
-def compute_seasonality_factor(start_date, end_date, days_to_max, seasonality_min, seasonality_max=1):
+def compute_seasonality_factor(start_date, end_date, days_to_max, seasonality_min, seasonality_max=1, dt=1.):
     """Compute seasonal modulation factors over a date range."""
     seasonality_factors = []
     start_date, end_date = pd.to_datetime(start_date), pd.to_datetime(end_date)
     day_max = start_date + timedelta(days=days_to_max)
+    simulation_dates = compute_simulation_dates(start_date, end_date, dt=dt)
 
-    for day in pd.date_range(start_date, end_date):
+    for day in simulation_dates:
         day_max_yearly = datetime(day.year, day_max.month, day_max.day)  # Peak seasonality date
         s_r = seasonality_min / seasonality_max
         factor = 0.5 * ((1 - s_r) * np.sin(2 * np.pi / 365 * (day - day_max_yearly).days + 0.5 * np.pi) + 1 + s_r)
@@ -164,6 +165,7 @@ def compute_seasonality_factor(start_date, end_date, days_to_max, seasonality_mi
 
 def run_seihr_stub(scenario: dict) -> pd.DataFrame:
     sim_length = int(scenario.get("sim_length", 250))
+    dt = float(scenario.get("time_step", 0.3))
     age_groups = DEFAULT_AGE_GROUPS
 
     # Build model
@@ -233,16 +235,17 @@ def run_seihr_stub(scenario: dict) -> pd.DataFrame:
             Nsim=N_SIM,
             start_date=START_DATE,
             end_date=START_DATE + timedelta(days=sim_length),
-            initial_conditions_dict=ic
+            initial_conditions_dict=ic,
+            dt=dt,
         )
 
     # Format Output (compartments and transitions)
     df_median_comp = results.get_quantiles_compartments(quantiles=[0.5])
-    df_median_comp["t"] = np.arange(sim_length+1, dtype=int)
+    df_median_comp["t"] = np.arange(len(df_median_comp), dtype=int) + 1
     df_median_comp.drop(columns=["quantile", "date"], inplace=True)
 
     df_median_trans = results.get_quantiles_transitions(quantiles=[0.5])
-    df_median_trans["t"] = np.arange(sim_length+1, dtype=int)
+    df_median_trans["t"] = np.arange(len(df_median_trans), dtype=int) + 1
     df_median_trans.drop(columns=["quantile", "date"], inplace=True)
 
     return df_median_comp, df_median_trans
@@ -250,6 +253,7 @@ def run_seihr_stub(scenario: dict) -> pd.DataFrame:
 
 def run_seirs_stub(scenario: dict) -> pd.DataFrame:
     sim_length = int(scenario.get("sim_length", 250))
+    dt = float(scenario.get("time_step", 0.3))
     age_groups = DEFAULT_AGE_GROUPS
 
     # Build model
@@ -274,7 +278,8 @@ def run_seirs_stub(scenario: dict) -> pd.DataFrame:
         START_DATE, 
         START_DATE + timedelta(days=sim_length), 
         scenario["model_params"]["seasonality_peak_day"], 
-        SEASONALITY_OPTIONS[scenario["model_params"]["seasonality_amplitude"]]
+        SEASONALITY_OPTIONS[scenario["model_params"]["seasonality_amplitude"]], 
+        dt=dt
     )
     model.add_parameter(
         parameters_dict={
@@ -316,16 +321,17 @@ def run_seirs_stub(scenario: dict) -> pd.DataFrame:
             Nsim=N_SIM,
             start_date=START_DATE,
             end_date=START_DATE + timedelta(days=sim_length),
-            initial_conditions_dict=ic
+            initial_conditions_dict=ic, 
+            dt=dt,
         )
 
     # Format Output (compartments and transitions)
     df_median_comp = results.get_quantiles_compartments(quantiles=[0.5])
-    df_median_comp["t"] = np.arange(sim_length+1, dtype=int)
+    df_median_comp["t"] = np.arange(len(df_median_comp), dtype=int) + 1
     df_median_comp.drop(columns=["quantile", "date"], inplace=True)
 
     df_median_trans = results.get_quantiles_transitions(quantiles=[0.5])
-    df_median_trans["t"] = np.arange(sim_length+1, dtype=int)
+    df_median_trans["t"] = np.arange(len(df_median_trans), dtype=int) + 1
     df_median_trans.drop(columns=["quantile", "date"], inplace=True)
 
     return df_median_comp, df_median_trans
@@ -333,6 +339,7 @@ def run_seirs_stub(scenario: dict) -> pd.DataFrame:
 
 def run_seir_stub(scenario: dict) -> pd.DataFrame:
     sim_length = int(scenario.get("sim_length", 250))
+    dt = float(scenario.get("time_step", 0.3))
     age_groups = DEFAULT_AGE_GROUPS
 
     # Build model
@@ -389,16 +396,17 @@ def run_seir_stub(scenario: dict) -> pd.DataFrame:
             Nsim=N_SIM,
             start_date=START_DATE,
             end_date=START_DATE + timedelta(days=sim_length),
-            initial_conditions_dict=ic
+            initial_conditions_dict=ic, 
+            dt=dt,
         )
 
     # Format Output (compartments and transitions)
     df_median_comp = results.get_quantiles_compartments(quantiles=[0.5])
-    df_median_comp["t"] = np.arange(sim_length+1, dtype=int)
+    df_median_comp["t"] = np.arange(len(df_median_comp), dtype=int) + 1
     df_median_comp.drop(columns=["quantile", "date"], inplace=True)
 
     df_median_trans = results.get_quantiles_transitions(quantiles=[0.5])
-    df_median_trans["t"] = np.arange(sim_length+1, dtype=int)
+    df_median_trans["t"] = np.arange(len(df_median_trans), dtype=int) + 1
     df_median_trans.drop(columns=["quantile", "date"], inplace=True)
 
     return df_median_comp, df_median_trans
