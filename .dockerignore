@@ -1,0 +1,12 @@
+.git
+.devcontainer
+__pycache__
+*.pyc
+*.pyo
+.venv
+venv
+.env
+test.ipynb
+.gitignore
+CHANGELOG.md
+README.md
