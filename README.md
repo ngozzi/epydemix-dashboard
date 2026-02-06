@@ -46,6 +46,16 @@ Launch the dashboard locally:
 streamlit run Dashboard.py
 ```
 
+### Docker
+
+Build and run with Docker:
+```bash
+docker build -t epydemix-dashboard .
+docker run -p 8501:8501 epydemix-dashboard
+```
+
+Then open [http://localhost:8501](http://localhost:8501) in your browser.
+
 ## Live Demo
 
 Try the live version at [scenario.epydemix.org](https://scenario.epydemix.org/)
