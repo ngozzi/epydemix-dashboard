@@ -2,9 +2,8 @@
 
 All notable changes to EpyScenario will be documented in this file.
 
-## [Unreleased]
 
-## [0.1.1] - 2025-02-05
+## [0.1.1] - 2026-02-06
 
 - Added configurable time step (dt) parameter for simulation integration
 - Added documentation on stochastic simulation engine and dt trade-offs
