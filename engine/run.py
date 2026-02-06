@@ -166,7 +166,7 @@ def compute_seasonality_factor(start_date, end_date, days_to_max, seasonality_mi
 
 def run_seihr_stub(scenario: dict) -> pd.DataFrame:
     sim_length = int(scenario.get("sim_length", 250))
-    dt = float(scenario.get("time_step", 0.3))
+    dt = float(scenario.get("time_step", 0.2))
     age_groups = DEFAULT_AGE_GROUPS
 
     # Build model
@@ -254,7 +254,7 @@ def run_seihr_stub(scenario: dict) -> pd.DataFrame:
 
 def run_seirs_stub(scenario: dict) -> pd.DataFrame:
     sim_length = int(scenario.get("sim_length", 250))
-    dt = float(scenario.get("time_step", 0.3))
+    dt = float(scenario.get("time_step", 0.2))
     age_groups = DEFAULT_AGE_GROUPS
 
     # Build model
@@ -340,7 +340,7 @@ def run_seirs_stub(scenario: dict) -> pd.DataFrame:
 
 def run_seir_stub(scenario: dict) -> pd.DataFrame:
     sim_length = int(scenario.get("sim_length", 250))
-    dt = float(scenario.get("time_step", 0.3))
+    dt = float(scenario.get("time_step", 0.2))
     age_groups = DEFAULT_AGE_GROUPS
 
     # Build model

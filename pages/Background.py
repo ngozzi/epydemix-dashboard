@@ -64,8 +64,7 @@ Users can configure the **time step (Δt)**, which controls the integration step
 
 - **Smaller dt** (e.g., 0.1–0.3): More accurate results, particularly for fast-spreading diseases,
   but slower computation
-- **Larger dt** (e.g., 0.5–1.0): Faster simulations, but risk of numerical instability or
-  overshooting when transmission rates are high
+- **Larger dt** (e.g., 0.5–1.0): Faster simulations, but risk of numerical instability or overshooting when rates are ~ 1/day. In this case it is important to note that some of the analytical relations derived from continuous limit equations can not be generally applied.
 
 For most scenarios, the default value provides a good balance between accuracy and performance.
 """)

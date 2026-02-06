@@ -92,7 +92,7 @@ def render_setup_panel(load_locations_fn, model_param_schemas):
             "$\Delta t$ (days)",
             min_value=0.1,
             max_value=1.0,
-            value=0.3,
+            value=0.2,
             step=0.1,
             help="Time step for the simulation. Smaller values result in more accurate simulations but require more computational resources.",
             key="time_step",

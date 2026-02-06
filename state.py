@@ -108,7 +108,7 @@ def build_current_config(model: str, geography: str) -> Dict[str, Any]:
         Nk=population.Nk,
         sim_length=int(st.session_state.get("sim_length", 250)),
         age_groups=DEFAULT_AGE_GROUPS,
-        dt=float(st.session_state.get("time_step", 0.3)),
+        dt=float(st.session_state.get("time_step", 0.2)),
     )
     df_doses_daily = df_doses.groupby(["t"], as_index=False).mean().reset_index()
     
@@ -154,7 +154,7 @@ def build_current_config(model: str, geography: str) -> Dict[str, Any]:
         "geography": geography,
         "population": deepcopy(population),
         "sim_length": int(st.session_state.get("sim_length", 250)),
-        "time_step": float(st.session_state.get("time_step", 0.3)),
+        "time_step": float(st.session_state.get("time_step", 0.2)),
         "initial_conditions": deepcopy(st.session_state.get("initial_conditions", {})),
         "model_params": deepcopy(st.session_state.get("model_params", {}).get(model, {})),
         "contact_interventions": deepcopy(st.session_state.get("contact_interventions", [])),
