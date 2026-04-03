@@ -68,7 +68,7 @@ def create_vaccination_rate_function(eligible_compartments):
 
 
 def create_initial_conditions(model, Nk, infected_pct, immune_pct): 
-    if model == "SEIR (Measles)":
+    if model == "SEIR (Pertussis)":
         # initialize
         ic = {
             "S": np.zeros_like(Nk), 
@@ -141,7 +141,7 @@ def create_initial_conditions(model, Nk, infected_pct, immune_pct):
 
 
 def compute_beta(model, R0, C, params): 
-    if model in ["SEIR (Measles)", "SEIRS (Influenza)", "SEIHR (COVID-19)"]:
+    if model in ["SEIR (Pertussis)", "SEIRS (Influenza)", "SEIHR (COVID-19)"]:
         return R0 * (1 / params["infectious_period"]) / np.linalg.eigvals(C.sum(axis=0)).real.max()
     else:
         raise ValueError(f"Model {model} not supported")
@@ -414,7 +414,7 @@ def run_seir_stub(scenario: dict) -> pd.DataFrame:
 
 
 MODEL_RUNNERS: dict[str, Callable[..., pd.DataFrame]] = {
-    "SEIR (Measles)": run_seir_stub,
+    "SEIR (Pertussis)": run_seir_stub,
     "SEIRS (Influenza)": run_seirs_stub,
     "SEIHR (COVID-19)": run_seihr_stub,
 }
