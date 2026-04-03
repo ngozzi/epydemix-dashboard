@@ -1,12 +1,12 @@
 # schemas.py
 
-MODEL_COMPS = {"SEIR (Measles)": ["S", "E", "I", "R", "V"], 
+MODEL_COMPS = {"SEIR (Pertussis)": ["S", "E", "I", "R", "V"], 
                "SEIRS (Influenza)": ["S", "E", "I", "R", "R1", "V"], 
                "SEIHR (COVID-19)": ["S", "E", "I", "H", "R", "V"]}
 
 MODEL_PARAM_SCHEMAS = {
     
-    "SEIR (Measles)": [
+    "SEIR (Pertussis)": [
         {
             "key": "R0",
             "label": "$R_0$",
@@ -140,7 +140,7 @@ MODEL_PARAM_SCHEMAS = {
 
 
 INITIAL_CONDITION_DEFAULTS = {
-    "SEIR (Measles)": {"infected_pct": 0.1, "immune_pct": 85.0},
+    "SEIR (Pertussis)": {"infected_pct": 0.1, "immune_pct": 85.0},
     "SEIRS (Influenza)": {"infected_pct": 0.1, "immune_pct": 25.0},
     "SEIHR (COVID-19)": {"infected_pct": 0.1, "immune_pct": 25.0},
 }

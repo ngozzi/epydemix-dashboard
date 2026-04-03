@@ -95,7 +95,7 @@ To know more about the underlying approach, please refer to the [**epydemix pape
 """)
 
 st.markdown("""
-### SEIR (Measles)
+### SEIR (Pertussis)
 
 The **SEIR model** divides the population into four compartments:
 

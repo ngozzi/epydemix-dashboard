@@ -25,7 +25,7 @@ def render_setup_panel(load_locations_fn, model_param_schemas):
     results_exist = bool(st.session_state.get("results"))
     
     # Get current selections early (before any UI elements)
-    st.session_state.setdefault("selected_model", "SEIR (Measles)")
+    st.session_state.setdefault("selected_model", "SEIR (Pertussis)")
     st.session_state.setdefault("selected_geography", load_locations_fn()[0])
     
     # Initialize workspace if needed BEFORE checking workspace_active
@@ -56,7 +56,7 @@ def render_setup_panel(load_locations_fn, model_param_schemas):
     with c1:
         model = st.selectbox(
             "Model",
-            options=["SEIR (Measles)", "SEIRS (Influenza)", "SEIHR (COVID-19)"],
+            options=["SEIR (Pertussis)", "SEIRS (Influenza)", "SEIHR (COVID-19)"],
             key="selected_model",
             on_change=_on_model_change,
             disabled=workspace_active,
