@@ -58,7 +58,7 @@ def render_vaccination_settings(compartments):
 def render_vaccination_campaigns(model: str, age_groups: list[str] | None = None) -> None:
     if model == "SEIR (Measles)":
         compartments = ["S", "E", "I", "R"]
-    elif model == "SEIRS (Influenza)":
+    elif model in ("SEIRS (Influenza)", "SEIRS (Pertussis)"):
         compartments = ["S", "E", "I", "R"]
     elif model == "SEIHR (COVID-19)":
         compartments = ["S", "E", "I", "H", "R"]

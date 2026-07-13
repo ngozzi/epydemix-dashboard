@@ -1,7 +1,8 @@
 # schemas.py
 
-MODEL_COMPS = {"SEIR (Measles)": ["S", "E", "I", "R", "V"], 
-               "SEIRS (Influenza)": ["S", "E", "I", "R", "R1", "V"], 
+MODEL_COMPS = {"SEIR (Measles)": ["S", "E", "I", "R", "V"],
+               "SEIRS (Influenza)": ["S", "E", "I", "R", "R1", "V"],
+               "SEIRS (Pertussis)": ["S", "E", "I", "R", "R1", "V"],
                "SEIHR (COVID-19)": ["S", "E", "I", "H", "R", "V"]}
 
 MODEL_PARAM_SCHEMAS = {
@@ -89,6 +90,60 @@ MODEL_PARAM_SCHEMAS = {
             "default": "Medium",
         }
     ],
+    "SEIRS (Pertussis)": [
+        {
+            "key": "R0",
+            "label": "$R_0$",
+            "type": "float",
+            "min": 0.1,
+            "max": 20.0,
+            "step": 0.1,
+            "default": 5.5,
+        },
+        {
+            "key": "incubation_period",
+            "label": "Incubation period (days)",
+            "type": "float",
+            "min": 0.5,
+            "max": 30.0,
+            "step": 0.5,
+            "default": 8.0,
+        },
+        {
+            "key": "infectious_period",
+            "label": "Infectious period (days)",
+            "type": "float",
+            "min": 0.5,
+            "max": 40.0,
+            "step": 0.5,
+            "default": 21.0,
+        },
+        {
+            "key": "waning_immunity_period",
+            "label": "Waning immunity period (days)",
+            "type": "float",
+            "min": 30.0,
+            "max": 10000.0,
+            "step": 30.0,
+            "default": 3650.0,
+        },
+        {
+            "key": "seasonality_peak_day",
+            "label": "Seasonality peak day (day of the year)",
+            "type": "float",
+            "min": 1,
+            "max": 365,
+            "step": 1,
+            "default": 240,
+        },
+        {
+            "key": "seasonality_amplitude",
+            "label": "Seasonality",
+            "type": "discrete",
+            "options": ["Strong", "Moderate", "Medium", "Low", "None"],
+            "default": "Low",
+        }
+    ],
     "SEIHR (COVID-19)": [
         {
             "key": "R0",
@@ -142,5 +197,6 @@ MODEL_PARAM_SCHEMAS = {
 INITIAL_CONDITION_DEFAULTS = {
     "SEIR (Measles)": {"infected_pct": 0.1, "immune_pct": 85.0},
     "SEIRS (Influenza)": {"infected_pct": 0.1, "immune_pct": 25.0},
+    "SEIRS (Pertussis)": {"infected_pct": 0.1, "immune_pct": 60.0},
     "SEIHR (COVID-19)": {"infected_pct": 0.1, "immune_pct": 25.0},
 }
