@@ -1,0 +1,140 @@
+<svg width="100%" viewBox="0 0 700 470" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>Pertussis SEIRS Compartmental Model with Partial-Immunity Track</title>
+  <desc>Eight-compartment model: a naive track (S to E to I to R) and a partially-immune track (Sp to Ep to Ip to Rp). Vaccination moves S to Sp. Full immunity wanes R to Sp (omega1); partial immunity wanes Rp to S (omega2). Force of infection is driven by both I and Ip, with Ip scaled by sigma and partial susceptibles Sp infected at reduced rate delta.</desc>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <style>
+      text { font-family: "Anthropic Sans", system-ui, sans-serif; }
+      .th { font-size: 15px; font-weight: 600; }
+      .ts { font-size: 12px; font-weight: 400; }
+      .tl { font-size: 11px; font-weight: 400; fill: #5f5e5a; }
+      .arr { stroke: #5f5e5a; stroke-width: 1.6; fill: none; }
+
+      /* Naive track — blue */
+      .c-blue rect  { fill: #E6F1FB; stroke: #185FA5; stroke-width: 1.2; }
+      .c-blue .th   { fill: #0C447C; }
+      .c-blue .ts   { fill: #185FA5; }
+
+      /* Partial-immunity track — teal */
+      .c-teal rect  { fill: #E1F5EE; stroke: #0F6E56; stroke-width: 1.2; }
+      .c-teal .th   { fill: #085041; }
+      .c-teal .ts   { fill: #0F6E56; }
+
+      /* Force of infection — red */
+      .arr-foi  { stroke: #C0392B; stroke-width: 1.6; fill: none; }
+      .t-foi    { fill: #C0392B; }
+      /* Waning — amber dashed */
+      .arr-wane { stroke: #BA7517; stroke-width: 1.5; fill: none; stroke-dasharray: 5 3; }
+      .t-wane   { fill: #BA7517; }
+      /* Vaccination — blue dashed */
+      .arr-vax  { stroke: #185FA5; stroke-width: 1.5; fill: none; stroke-dasharray: 4 3; }
+      .t-vax    { fill: #185FA5; }
+
+      @media (prefers-color-scheme: dark) {
+        text { fill: #E8E6DF; }
+        .tl { fill: #B4B2A9; }
+        .arr { stroke: #B4B2A9; }
+        .c-blue rect { fill: #0C447C; stroke: #85B7EB; }
+        .c-blue .th  { fill: #B5D4F4; }
+        .c-blue .ts  { fill: #85B7EB; }
+        .c-teal rect { fill: #085041; stroke: #5DCAA5; }
+        .c-teal .th  { fill: #9FE1CB; }
+        .c-teal .ts  { fill: #5DCAA5; }
+        .arr-foi { stroke: #F1948A; } .t-foi { fill: #F1948A; }
+        .arr-wane{ stroke: #EF9F27; } .t-wane{ fill: #EF9F27; }
+        .arr-vax { stroke: #85B7EB; } .t-vax { fill: #85B7EB; }
+      }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text class="th" x="350" y="34" text-anchor="middle" style="fill:#1a1a18;">Pertussis — SEIRS with partial-immunity track</text>
+  <text class="tl" x="350" y="54" text-anchor="middle">8 compartments · force of infection β(I + σI&#8346;) · Wearing &amp; Rohani (2009)</text>
+
+  <!-- Row labels -->
+  <text class="tl" x="18" y="150" text-anchor="middle" transform="rotate(-90,18,150)">NAIVE</text>
+  <text class="tl" x="18" y="360" text-anchor="middle" transform="rotate(-90,18,360)">PARTIAL IMMUNITY</text>
+
+  <!-- ══════════════ NAIVE TRACK (top row, y 122..178) ══════════════ -->
+  <g class="c-blue">
+    <rect x="56" y="122" width="110" height="56" rx="8"/>
+    <text class="th" x="111" y="147" text-anchor="middle" dominant-baseline="central">S</text>
+    <text class="ts" x="111" y="165" text-anchor="middle" dominant-baseline="central">Susceptible</text>
+  </g>
+  <g class="c-blue">
+    <rect x="214" y="122" width="110" height="56" rx="8"/>
+    <text class="th" x="269" y="147" text-anchor="middle" dominant-baseline="central">E</text>
+    <text class="ts" x="269" y="165" text-anchor="middle" dominant-baseline="central">Exposed</text>
+  </g>
+  <g class="c-blue">
+    <rect x="372" y="122" width="110" height="56" rx="8"/>
+    <text class="th" x="427" y="147" text-anchor="middle" dominant-baseline="central">I</text>
+    <text class="ts" x="427" y="165" text-anchor="middle" dominant-baseline="central">Infectious</text>
+  </g>
+  <g class="c-blue">
+    <rect x="530" y="122" width="110" height="56" rx="8"/>
+    <text class="th" x="585" y="147" text-anchor="middle" dominant-baseline="central">R</text>
+    <text class="ts" x="585" y="165" text-anchor="middle" dominant-baseline="central">Recovered</text>
+  </g>
+
+  <!-- ══════════════ PARTIAL TRACK (bottom row, y 305..361) ══════════════ -->
+  <g class="c-teal">
+    <rect x="56" y="305" width="110" height="56" rx="8"/>
+    <text class="th" x="111" y="330" text-anchor="middle" dominant-baseline="central">S&#8346;</text>
+    <text class="ts" x="111" y="348" text-anchor="middle" dominant-baseline="central">Susceptible*</text>
+  </g>
+  <g class="c-teal">
+    <rect x="214" y="305" width="110" height="56" rx="8"/>
+    <text class="th" x="269" y="330" text-anchor="middle" dominant-baseline="central">E&#8346;</text>
+    <text class="ts" x="269" y="348" text-anchor="middle" dominant-baseline="central">Exposed*</text>
+  </g>
+  <g class="c-teal">
+    <rect x="372" y="305" width="110" height="56" rx="8"/>
+    <text class="th" x="427" y="330" text-anchor="middle" dominant-baseline="central">I&#8346;</text>
+    <text class="ts" x="427" y="348" text-anchor="middle" dominant-baseline="central">Infectious*</text>
+  </g>
+  <g class="c-teal">
+    <rect x="530" y="305" width="110" height="56" rx="8"/>
+    <text class="th" x="585" y="330" text-anchor="middle" dominant-baseline="central">R&#8346;</text>
+    <text class="ts" x="585" y="348" text-anchor="middle" dominant-baseline="central">Recovered*</text>
+  </g>
+
+  <!-- ══════════════ NAIVE HORIZONTAL ARROWS (y 150) ══════════════ -->
+  <line x1="166" y1="150" x2="212" y2="150" class="arr-foi" marker-end="url(#arrow)"/>
+  <text class="t-foi" x="189" y="142" text-anchor="middle" font-size="11">β(I+σI&#8346;)</text>
+
+  <line x1="324" y1="150" x2="370" y2="150" class="arr" marker-end="url(#arrow)"/>
+  <text class="tl" x="347" y="142" text-anchor="middle">ε</text>
+
+  <line x1="482" y1="150" x2="528" y2="150" class="arr" marker-end="url(#arrow)"/>
+  <text class="tl" x="505" y="142" text-anchor="middle">γ</text>
+
+  <!-- ══════════════ PARTIAL HORIZONTAL ARROWS (y 333) ══════════════ -->
+  <line x1="166" y1="333" x2="212" y2="333" class="arr-foi" marker-end="url(#arrow)"/>
+  <text class="t-foi" x="189" y="325" text-anchor="middle" font-size="11">δβ(I+σI&#8346;)</text>
+
+  <line x1="324" y1="333" x2="370" y2="333" class="arr" marker-end="url(#arrow)"/>
+  <text class="tl" x="347" y="325" text-anchor="middle">ε</text>
+
+  <line x1="482" y1="333" x2="528" y2="333" class="arr" marker-end="url(#arrow)"/>
+  <text class="tl" x="505" y="325" text-anchor="middle">γ&#8346;</text>
+
+  <!-- ══════════════ VACCINATION  S → Sp  (blue dashed) ══════════════ -->
+  <line x1="100" y1="178" x2="100" y2="303" class="arr-vax" marker-end="url(#arrow)"/>
+  <text class="t-vax" x="88" y="244" text-anchor="end">ν</text>
+  <text class="t-vax" x="88" y="258" text-anchor="end" font-size="10">vaccination</text>
+
+  <!-- ══════════════ WANING ω₁  R → Sp  (full → partial) ══════════════ -->
+  <path d="M585 178 V236 H128 V303" class="arr-wane" marker-end="url(#arrow)"/>
+  <text class="t-wane" x="360" y="230" text-anchor="middle">ω₁ · waning full → partial</text>
+
+  <!-- ══════════════ WANING ω₂  Rp → S  (partial → susceptible), outer loop ══════════════ -->
+  <path d="M585 361 V440 H40 V150 H54" class="arr-wane" marker-end="url(#arrow)"/>
+  <text class="t-wane" x="330" y="434" text-anchor="middle">ω₂ · waning partial → susceptible</text>
+
+  <!-- ══════════════ LEGEND ══════════════ -->
+  <text class="tl" x="350" y="462" text-anchor="middle" font-size="10.5">* Partial track: reduced susceptibility (δ&lt;1) &amp; infectiousness (σ&lt;1), shorter illness (γ&#8346;&gt;γ). Closed population — no births/deaths.</text>
+</svg>

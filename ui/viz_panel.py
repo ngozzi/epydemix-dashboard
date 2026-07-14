@@ -71,6 +71,17 @@ def compute_summary_metrics(selected_ids, scenarios, results):
             R = df_comp[r_col].to_numpy()
             E_to_I = df_trans[e_to_i_col].to_numpy()
 
+            # Pertussis has a parallel partial-immunity track (Ip). Include it in
+            # prevalence and new-infection metrics so the "silent" partial cases
+            # are not undercounted.
+            if model == "SEIRS (Pertussis)":
+                ip_col = f"Ip_{ag}"
+                ep_to_ip_col = f"Ep_to_Ip_{ag}"
+                if ip_col in df_comp.columns:
+                    I = I + df_comp[ip_col].to_numpy()
+                if ep_to_ip_col in df_trans.columns:
+                    E_to_I = E_to_I + df_trans[ep_to_ip_col].to_numpy()
+
             peak_idx = int(I.argmax())
             peak_day = int(t[peak_idx])
             peak_amp = float(I[peak_idx])

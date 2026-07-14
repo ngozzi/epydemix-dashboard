@@ -210,8 +210,10 @@ def ensure_initial_conditions_defaults(model: str, ic_defaults: dict) -> None:
 
     defaults = ic_defaults.get(model, {"infected_pct": 0.1, "immune_pct": 0.0})
 
-    st.session_state["initial_conditions"].setdefault("infected_pct", float(defaults["infected_pct"]))
-    st.session_state["initial_conditions"].setdefault("immune_pct", float(defaults["immune_pct"]))
+    # Seed every key the model defines (models may add extra fields, e.g. the
+    # pertussis partial-immunity splits) without clobbering existing values.
+    for k, v in defaults.items():
+        st.session_state["initial_conditions"].setdefault(k, float(v))
 
 
 def ensure_contact_interventions_defaults() -> None:
@@ -255,8 +257,7 @@ def reset_initial_conditions_to_defaults(model: str, ic_defaults: dict) -> None:
 
     defaults = ic_defaults.get(model, {"infected_pct": 0.1, "immune_pct": 0.0})
 
-    st.session_state["initial_conditions"] = {
-        "infected_pct": float(defaults["infected_pct"]),
-        "immune_pct": float(defaults["immune_pct"]),
-    }
+    # Replace with a fresh copy of all keys the model defines. Switching models
+    # therefore drops any extra fields that belonged to the previous model.
+    st.session_state["initial_conditions"] = {k: float(v) for k, v in defaults.items()}
 

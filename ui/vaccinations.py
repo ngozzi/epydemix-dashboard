@@ -58,8 +58,12 @@ def render_vaccination_settings(compartments):
 def render_vaccination_campaigns(model: str, age_groups: list[str] | None = None) -> None:
     if model == "SEIR (Measles)":
         compartments = ["S", "E", "I", "R"]
-    elif model in ("SEIRS (Influenza)", "SEIRS (Pertussis)"):
+    elif model == "SEIRS (Influenza)":
         compartments = ["S", "E", "I", "R"]
+    elif model == "SEIRS (Pertussis)":
+        # Vaccination moves naive susceptibles into the partial-immunity pool
+        # (S -> Sp), so the eligible pool is the naive susceptibles.
+        compartments = ["S"]
     elif model == "SEIHR (COVID-19)":
         compartments = ["S", "E", "I", "H", "R"]
     else:

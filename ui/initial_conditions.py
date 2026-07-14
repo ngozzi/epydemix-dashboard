@@ -36,3 +36,32 @@ def render_initial_conditions(model: str, ic_defaults: dict) -> None:
 
         st.session_state["initial_conditions"]["infected_pct"] = float(infected_pct)
         st.session_state["initial_conditions"]["immune_pct"] = float(immune_pct)
+
+        # Pertussis has an 8-compartment structure, so the two coarse sliders
+        # above are further split across the naive and partial-immunity tracks.
+        if model == "SEIRS (Pertussis)":
+            st.caption("Partial-immunity structure (pertussis only).")
+            c3, c4 = st.columns(2, gap="small")
+
+            with c3:
+                partial_infection_pct = st.number_input(
+                    "Infections in partial track (%)",
+                    min_value=0.0,
+                    max_value=100.0,
+                    value=float(st.session_state["initial_conditions"].get("partial_infection_pct", 33.0)),
+                    step=1.0,
+                    help="Share of the initial infections seeded in the partial-immunity track (Eₚ/Iₚ) rather than the naive track (E/I).",
+                )
+
+            with c4:
+                partial_immune_pct = st.number_input(
+                    "Sₚ share of immune pool (%)",
+                    min_value=0.0,
+                    max_value=100.0,
+                    value=float(st.session_state["initial_conditions"].get("partial_immune_pct", 71.0)),
+                    step=1.0,
+                    help="Share of the background-immunity pool placed in partially-susceptible Sₚ. The remainder is split between Rₚ and R.",
+                )
+
+            st.session_state["initial_conditions"]["partial_infection_pct"] = float(partial_infection_pct)
+            st.session_state["initial_conditions"]["partial_immune_pct"] = float(partial_immune_pct)
