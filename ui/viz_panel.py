@@ -466,6 +466,104 @@ def render_metrics_tab(primary_id, selected_ids, scenarios, results):
     )
 
 
+def render_observed_comparison(primary_id, scenarios, results):
+    """Compare the primary run against the selected observed case dataset."""
+    from data.observed_datasets import OBSERVED_DATASETS
+    from engine.calibration import observed_targets, modeled_case_summary, fit_error
+
+    cfg = scenarios[primary_id]["config"]
+    ds_name = cfg.get("observed_dataset")
+    if not ds_name or ds_name not in OBSERVED_DATASETS:
+        st.info("No observed dataset selected for the primary scenario.")
+        return
+
+    raw = OBSERVED_DATASETS[ds_name]["raw"]
+    obs = observed_targets(raw)
+    mod = modeled_case_summary(results[primary_id]["transitions"])
+    err = fit_error(obs, mod)
+
+    st.caption(
+        f"Primary scenario **{scenarios[primary_id].get('name', primary_id)}** vs observed "
+        f"**{ds_name}**. Model incidence is cumulative new infections "
+        "(E→I naive, Eₚ→Iₚ partial); observed is cumulative cases."
+    )
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Observed vaccinated share", f"{obs['overall_partial_share']:.0%}")
+    c2.metric("Modeled vaccinated share", f"{mod['overall_partial_share']:.0%}")
+    c3.metric("Age-dist RMSE (fit)", f"{err['age_dist_rmse']:.3f}")
+
+    # --- Age distribution: observed vs modeled (normalised shares) ---
+    rows = []
+    for i, ag in enumerate(DEFAULT_AGE_GROUPS):
+        rows.append({"age_group": ag, "source": "Observed", "share": float(obs["age_dist"][i])})
+        rows.append({"age_group": ag, "source": "Modeled", "share": float(mod["age_dist"][i])})
+    dist_df = pd.DataFrame(rows)
+
+    st.markdown("**Case age distribution (share of total)**")
+    chart = (
+        alt.Chart(dist_df)
+        .mark_bar()
+        .encode(
+            x=alt.X("age_group:N", title="Age group", sort=DEFAULT_AGE_GROUPS),
+            y=alt.Y("share:Q", title="Share of cases", axis=alt.Axis(format="%")),
+            color=alt.Color("source:N", title="", scale=alt.Scale(scheme="set2")),
+            xOffset="source:N",
+            tooltip=["age_group:N", "source:N", alt.Tooltip("share:Q", format=".1%")],
+        )
+    )
+    st.altair_chart(chart, use_container_width=True)
+
+    # --- Vaccinated (partial) share by band ---
+    srows = []
+    for i, ag in enumerate(DEFAULT_AGE_GROUPS):
+        o = obs["partial_share_by_band"][i]
+        m = mod["partial_share_by_band"][i]
+        if np.isfinite(o):
+            srows.append({"age_group": ag, "source": "Observed", "share": float(o)})
+        if np.isfinite(m):
+            srows.append({"age_group": ag, "source": "Modeled", "share": float(m)})
+    if srows:
+        share_df = pd.DataFrame(srows)
+        st.markdown("**Vaccinated (partial-track) share of cases, by age band**")
+        chart2 = (
+            alt.Chart(share_df)
+            .mark_bar()
+            .encode(
+                x=alt.X("age_group:N", title="Age group", sort=DEFAULT_AGE_GROUPS),
+                y=alt.Y("share:Q", title="Vaccinated share", axis=alt.Axis(format="%")),
+                color=alt.Color("source:N", title="", scale=alt.Scale(scheme="set2")),
+                xOffset="source:N",
+                tooltip=["age_group:N", "source:N", alt.Tooltip("share:Q", format=".1%")],
+            )
+        )
+        st.altair_chart(chart2, use_container_width=True)
+
+    # --- Raw comparison table + download ---
+    table = pd.DataFrame({
+        "age_group": DEFAULT_AGE_GROUPS,
+        "observed_cases": obs["age_counts"].astype(int),
+        "observed_naive(No)": obs["naive_by_band"].astype(int),
+        "observed_partial(Yes)": obs["partial_by_band"].astype(int),
+        "modeled_new_infections": np.round(mod["age_counts"]).astype(int),
+        "modeled_naive": np.round(mod["naive_by_band"]).astype(int),
+        "modeled_partial": np.round(mod["partial_by_band"]).astype(int),
+    })
+    st.dataframe(table, use_container_width=True, hide_index=True)
+    st.download_button(
+        "Download observed-vs-modeled (CSV)",
+        data=table.to_csv(index=False).encode("utf-8"),
+        file_name=f"observed_vs_modeled_{ds_name}.csv",
+        mime="text/csv",
+    )
+    st.caption(
+        "Note: the modeled age distribution is driven by the geography's contact matrix and "
+        "will not necessarily match reporting-skewed surveillance data (e.g. adolescent-heavy "
+        "pertussis case counts). The vaccinated-share comparison is the more meaningful "
+        "structural check for this model."
+    )
+
+
 def render_demographic_and_contacts_tab(
     population, 
     contact_matrices, 
@@ -588,7 +686,12 @@ def render_viz_panel(model: str, geography: str) -> None:
     
     selected_ids = [primary_id] + compare_ids
 
-    tab_ts, tab_metrics, tab_contact_interventions, tab_vaccinations, tab_population = st.tabs(["Trajectories", "Summary metrics", "Contact Interventions", "Vaccinations", "Population"])
+    has_observed = bool(scenarios[primary_id]["config"].get("observed_dataset"))
+    tab_labels = ["Trajectories", "Summary metrics", "Contact Interventions", "Vaccinations", "Population"]
+    if has_observed:
+        tab_labels.append("Observed vs modeled")
+    _tabs = st.tabs(tab_labels)
+    tab_ts, tab_metrics, tab_contact_interventions, tab_vaccinations, tab_population = _tabs[:5]
 
     with tab_ts:
         render_compartment_timeseries(MODEL_COMPS[model], selected_ids, scenarios, results)
@@ -639,9 +742,13 @@ def render_viz_panel(model: str, geography: str) -> None:
             help="Download vaccination timeseries data with age groups and daily doses"
         )
 
-    with tab_population: 
+    with tab_population:
         render_demographic_and_contacts_tab(
             population=scenarios[primary_id]["config"]["population"],
             contact_matrices=scenarios[primary_id]["config"]["population"].contact_matrices,
             country_name=scenarios[primary_id]["config"]["geography"],
         )
+
+    if has_observed:
+        with _tabs[5]:
+            render_observed_comparison(primary_id, scenarios, results)

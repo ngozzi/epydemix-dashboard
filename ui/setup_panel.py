@@ -9,6 +9,92 @@ from ui.scenarios import render_save_run_controls, render_saved_scenarios_list
 from ui.vaccinations import render_vaccination_campaigns
 from schemas import INITIAL_CONDITION_DEFAULTS, MODEL_PARAM_SCHEMAS
 from state import reset_model_params_to_defaults, reset_initial_conditions_to_defaults, reset_workspace
+from data.observed_datasets import OBSERVED_DATASETS
+
+
+def render_observed_panel(model: str, geography: str) -> None:
+    """Pertussis: select an observed case dataset to overlay, seed from, or
+    auto-calibrate against."""
+    st.session_state.setdefault("observed_dataset", None)
+    st.session_state.setdefault("observed_mode", "Off")
+
+    names = ["None"] + list(OBSERVED_DATASETS.keys())
+    current = st.session_state.get("observed_dataset") or "None"
+    choice = st.selectbox(
+        "Observed dataset",
+        options=names,
+        index=names.index(current) if current in names else 0,
+        help="Real-world case data (by age and vaccination status) to compare against or seed from.",
+    )
+    st.session_state["observed_dataset"] = None if choice == "None" else choice
+
+    if choice == "None":
+        st.caption("Select a dataset to overlay it on results, seed the outbreak from it, or auto-calibrate.")
+        return
+
+    meta = OBSERVED_DATASETS[choice]
+    st.caption(meta.get("note", ""))
+    hint = meta.get("geography_hint")
+    if hint and hint != geography:
+        st.info(f"This dataset is for **{hint}**. Set Geography to match for a like-for-like comparison.")
+
+    st.radio(
+        "Use the dataset as",
+        options=["Off", "Overlay / compare", "Seed initial state"],
+        key="observed_mode",
+        help=(
+            "Overlay / compare: show observed vs. modeled case age-distribution and "
+            "vaccinated share after a run.  Seed initial state: start the outbreak "
+            "from the observed counts (No→naive, Yes→partial), then project forward."
+        ),
+    )
+
+    # ---- Auto-calibrate (coarse) --------------------------------------------
+    st.markdown("**Auto-calibrate (coarse)**")
+    st.caption(
+        "Grid-search R₀, σ (partial infectiousness) and the Sₚ share of the immune "
+        "pool to best match the observed vaccinated-share and age distribution. "
+        "Uses a reduced number of stochastic runs for speed."
+    )
+    if st.button("Calibrate to observed", use_container_width=True):
+        from state import build_current_config
+        from engine.run import run_scenario
+        from engine.calibration import calibrate_to_observed
+        import engine.run as _runmod
+
+        raw = meta["raw"]
+        with st.spinner("Running coarse calibration (27 evaluations)…"):
+            base = build_current_config(model, geography)
+            old_nsim = _runmod.N_SIM
+            _runmod.N_SIM = 5  # speed up the search
+            try:
+                res = calibrate_to_observed(base, raw, run_scenario)
+            finally:
+                _runmod.N_SIM = old_nsim
+
+        best = res["best"]
+        # Apply best params to the structured store and clear widget keys so the
+        # inputs re-initialise to the calibrated values on rerun.
+        mp_store = st.session_state["model_params"][model]
+        mp_store["R0"] = float(best["R0"])
+        mp_store["rel_infectiousness_partial"] = float(best["rel_infectiousness_partial"])
+        st.session_state["initial_conditions"]["partial_immune_pct"] = float(best["partial_immune_pct"])
+        for k in ("R0", "rel_infectiousness_partial"):
+            st.session_state.pop(f"param_{model}_{k}", None)
+
+        st.session_state["_calib_result"] = res
+        st.rerun()
+
+    res = st.session_state.get("_calib_result")
+    if res:
+        b = res["best"]
+        st.success(
+            f"Best fit → R₀={b['R0']}, σ={b['rel_infectiousness_partial']}, "
+            f"Sₚ share={b['partial_immune_pct']}% · modeled vaccinated share "
+            f"{b['modeled_partial_share']:.0%} vs observed "
+            f"{res['observed']['overall_partial_share']:.0%} "
+            f"(age-dist RMSE {b['age_dist_rmse']:.3f}). Applied — click Run to simulate."
+        )
 
 
 def _on_model_change():
@@ -115,6 +201,10 @@ def render_setup_panel(load_locations_fn, model_param_schemas):
 
     with st.expander("Vaccination campaigns", expanded=False):
         render_vaccination_campaigns(model)
+
+    if model == "SEIRS (Pertussis)":
+        with st.expander("Observed data & calibration", expanded=False):
+            render_observed_panel(model, geography)
 
     render_saved_scenarios_list()
 

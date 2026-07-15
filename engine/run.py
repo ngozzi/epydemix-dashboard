@@ -530,15 +530,27 @@ def run_pertussis_stub(scenario: dict) -> pd.DataFrame:
         }
     )
 
-    # Initial conditions
-    ic = create_initial_conditions(
-        scenario["model"],
-        model.population.Nk,
-        scenario["initial_conditions"]["infected_pct"],
-        scenario["initial_conditions"]["immune_pct"],
-        partial_infection_pct=scenario["initial_conditions"].get("partial_infection_pct", 33.0),
-        partial_immune_pct=scenario["initial_conditions"].get("partial_immune_pct", 71.0),
-    )
+    # Initial conditions: either seeded from an observed case dataset, or from
+    # the initial-condition sliders.
+    if scenario.get("observed_mode") == "Seed initial state" and scenario.get("observed_dataset"):
+        from engine.calibration import seed_ic_from_observed
+        from data.observed_datasets import OBSERVED_DATASETS
+        raw = OBSERVED_DATASETS[scenario["observed_dataset"]]["raw"]
+        ic = seed_ic_from_observed(
+            model.population.Nk,
+            raw,
+            immune_pct=scenario["initial_conditions"]["immune_pct"],
+            partial_immune_pct=scenario["initial_conditions"].get("partial_immune_pct", 71.0),
+        )
+    else:
+        ic = create_initial_conditions(
+            scenario["model"],
+            model.population.Nk,
+            scenario["initial_conditions"]["infected_pct"],
+            scenario["initial_conditions"]["immune_pct"],
+            partial_infection_pct=scenario["initial_conditions"].get("partial_infection_pct", 33.0),
+            partial_immune_pct=scenario["initial_conditions"].get("partial_immune_pct", 71.0),
+        )
 
     # Apply Contact interventions
     for intervention in scenario["contact_interventions"]:

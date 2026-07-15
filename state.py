@@ -163,6 +163,9 @@ def build_current_config(model: str, geography: str) -> Dict[str, Any]:
         "daily_doses_by_age": deepcopy(df_doses),
         "daily_doses_by_age_daily": deepcopy(df_doses_daily),
         "spectral_radius_df": deepcopy(spectral_radius_df),
+        # Observed dataset selection (pertussis calibration/comparison)
+        "observed_dataset": st.session_state.get("observed_dataset", None),
+        "observed_mode": st.session_state.get("observed_mode", "Off"),
     }
     return cfg
 
