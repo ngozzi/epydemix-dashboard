@@ -6,6 +6,7 @@
 #   2. Enter actual vaccination coverage by age band to set the model's starting
 #      immunity landscape, so runs can be calibrated against real data.
 
+import copy
 import streamlit as st
 import pandas as pd
 
@@ -13,6 +14,9 @@ from layout.header import show_dashboard_header
 from layout.sidebar import render_sidebar
 from layout.logos import show_logos
 from constants import DEFAULT_AGE_GROUPS
+from data.campaign_store import (
+    load_saved_campaigns, save_campaign_set, delete_campaign_set, DEFAULT_SET_NAME,
+)
 
 st.set_page_config(
     page_title="Vaccination Planner",
@@ -52,14 +56,19 @@ st.header("1 · Age-stratified campaign (what-if)")
 st.caption(
     "Set a different target coverage per age band, then add them to the scenario. "
     "Each non-zero row becomes one vaccination campaign. Use this to explore "
-    "'what-if' coverage strategies (e.g. boost adolescents, or drop infant coverage)."
+    "'what-if' coverage strategies (e.g. boost adolescents, or drop infant coverage). "
+    "The grid is pre-filled with the CDC DTaP/Tdap schedule as a starting point."
 )
 
+# Pre-fill the builder grid with the DTaP/Tdap schedule mapped onto the age bands
+# (0-4 primary series 92%, 5-19 adolescent booster 90%, adults decennial ~7%).
+_DTAP_COVERAGE = {"0-4": 92.0, "5-19": 90.0, "20-49": 7.0, "50-64": 7.0, "65+": 7.0}
+_DTAP_VE = {"0-4": 80.0, "5-19": 80.0, "20-49": 70.0, "50-64": 70.0, "65+": 70.0}
 strat_default = pd.DataFrame(
     {
         "Age group": DEFAULT_AGE_GROUPS,
-        "Coverage %": [0.0] * len(DEFAULT_AGE_GROUPS),
-        "Vaccine efficacy %": [80.0] * len(DEFAULT_AGE_GROUPS),
+        "Coverage %": [_DTAP_COVERAGE[ag] for ag in DEFAULT_AGE_GROUPS],
+        "Vaccine efficacy %": [_DTAP_VE[ag] for ag in DEFAULT_AGE_GROUPS],
         "Start day": [0] * len(DEFAULT_AGE_GROUPS),
         "End day": [250] * len(DEFAULT_AGE_GROUPS),
     }
@@ -139,6 +148,51 @@ if camps:
     st.dataframe(summary_df, use_container_width=True, hide_index=True)
 else:
     st.info("No vaccination campaigns yet.")
+
+# ---- Saved campaign sets (persist between sessions via JSON) -----------------
+st.subheader("Saved campaign sets (persist between sessions)")
+st.caption(
+    "Named campaign sets are stored on disk (data/saved_campaigns.json) and stay "
+    "available across sessions. The **DTaP/Tdap (CDC)** set is provided by default. "
+    "These sets are also loadable from the pertussis **Vaccination campaigns** menu "
+    "on the main Dashboard."
+)
+
+saved = load_saved_campaigns()
+set_names = list(saved.keys())
+
+s1, s2, s3 = st.columns([1.6, 0.7, 0.7], gap="small")
+with s1:
+    sel_set = st.selectbox("Saved set", options=set_names, key="planner_saved_set")
+with s2:
+    st.markdown("<div style='height:1.8em'></div>", unsafe_allow_html=True)
+    if st.button("Load into scenario", use_container_width=True, key="planner_load_set"):
+        st.session_state["vaccination_campaigns"] = copy.deepcopy(saved.get(sel_set, []))
+        st.success(f"Loaded '{sel_set}' into the scenario ({len(saved.get(sel_set, []))} campaigns).")
+with s3:
+    st.markdown("<div style='height:1.8em'></div>", unsafe_allow_html=True)
+    disabled_del = (sel_set == DEFAULT_SET_NAME)
+    if st.button("Delete set", use_container_width=True, key="planner_del_set", disabled=disabled_del,
+                 help="The default DTaP/Tdap set cannot be deleted." if disabled_del else None):
+        delete_campaign_set(sel_set)
+        st.success(f"Deleted '{sel_set}'.")
+        st.rerun()
+
+sv1, sv2 = st.columns([1.6, 0.8], gap="small")
+with sv1:
+    save_name = st.text_input("Save current scenario campaigns as", value="My campaign set", key="planner_save_name")
+with sv2:
+    st.markdown("<div style='height:1.8em'></div>", unsafe_allow_html=True)
+    if st.button("Save set", type="primary", use_container_width=True, key="planner_save_set"):
+        name = (save_name or "").strip()
+        current = st.session_state.get("vaccination_campaigns", [])
+        if not name:
+            st.warning("Enter a name for the campaign set.")
+        elif not current:
+            st.warning("There are no campaigns in the scenario to save.")
+        else:
+            save_campaign_set(name, current)
+            st.success(f"Saved '{name}' ({len(current)} campaigns) — it will persist between sessions.")
 
 st.divider()
 

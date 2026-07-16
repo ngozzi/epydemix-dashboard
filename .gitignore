@@ -207,3 +207,6 @@ marimo/_lsp/
 __marimo__/
 
 .DS_Store
+
+# Runtime user data (auto-seeded from code on first run)
+data/saved_campaigns.json

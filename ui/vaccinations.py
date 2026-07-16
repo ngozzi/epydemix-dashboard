@@ -1,48 +1,16 @@
+import copy
 import streamlit as st
 from constants import DEFAULT_AGE_GROUPS
 from state import ensure_vax_state_defaults, ensure_vax_settings_defaults
+from data.campaign_store import default_dtap_campaigns, load_saved_campaigns
 
 ROLLOUT_SHAPES = ["flat", "ramp"]
 
 
 def _cdc_pertussis_campaigns(sim_length: int) -> list[dict]:
-    """
-    Approximate the CDC DTaP / Tdap immunization schedule as dashboard
-    vaccination campaigns for the pertussis model.
-
-    Modeling note: this model has no birth cohorts or aging, and uses coarse
-    age groups (0-4, 5-19, 20-49, 50-64, 65+). The per-individual dose calendar
-    (2/4/6/15-18 mo, 4-6 yr, 11 yr, then every 10 yr) therefore cannot be
-    represented as dated events. Instead each schedule element becomes a
-    program-level *coverage* of the relevant age band, applied over the whole
-    simulation window. Coverage values reflect routine US coverage and are
-    fully editable after loading.
-    """
-    end = max(0, int(sim_length) - 1)
-    # Adult boosters are decennial (~10% of the pool per year); scale to the
-    # simulation horizon so longer runs accumulate more booster doses.
-    years = max(sim_length / 365.0, 0.05)
-
-    def camp(name, ages, cov, ve):
-        return {
-            "name": name,
-            "start_day": 0,
-            "end_day": end,
-            "target_age_groups": ages,
-            "coverage": round(cov, 3),   # fraction of age-band pool over window
-            "ve_sus": ve,                # efficacy against susceptibility
-            "rollout": {"shape": "flat", "ramp_up_days": 0},
-        }
-
-    return [
-        # DTaP primary series + kindergarten booster (doses 1-5), all in 0-4
-        camp("DTaP primary series (doses 1-5, ages 0-4)", ["0-4"], 0.92, 0.80),
-        # Tdap adolescent booster (~11 yr) falls in the 5-19 band
-        camp("Tdap booster (adolescent ~11y)", ["5-19"], 0.90, 0.80),
-        # Td/Tdap decennial adult boosters across the adult bands
-        camp("Td/Tdap decennial booster (adults)",
-             ["20-49", "50-64", "65+"], min(1.0, 0.10 * years), 0.70),
-    ]
+    """CDC DTaP/Tdap schedule as campaigns. Kept as a thin wrapper around the
+    persistent campaign store so there is a single source of truth."""
+    return default_dtap_campaigns(sim_length)
 
 
 def _validate_campaign(start_day: int, end_day: int, ramp_days: int, rollout: str) -> str | None:
@@ -117,20 +85,29 @@ def render_vaccination_campaigns(model: str, age_groups: list[str] | None = None
         "Choose different coverage, effectiveness, rollout shapes and (optionally) which compartments are eligible."
     )
 
-    # ---- Pertussis: one-click CDC DTaP/Tdap schedule preset
+    # ---- Pertussis: load a saved campaign set (managed in the Vaccination Planner)
     if model == "SEIRS (Pertussis)":
         with st.container(border=True):
-            st.markdown("**CDC DTaP / Tdap schedule**")
+            st.markdown("**Saved campaign sets**")
             st.caption(
-                "Loads the childhood DTaP series (ages 0-4), the adolescent Tdap booster (5-19) "
-                "and decennial adult boosters (20-49 / 50-64 / 65+) as editable campaign lines. "
-                "Because the model has no birth cohorts or aging, each dose milestone is represented "
-                "as program-level coverage of an age band over the simulation window — not as dated doses."
+                "Load a persistent campaign set into this scenario. The default "
+                "**DTaP/Tdap (CDC)** set is always available; create and save your own "
+                "on the **Vaccination Planner** page (they persist between sessions)."
             )
-            if st.button("Load CDC DTaP/Tdap schedule", use_container_width=True):
-                sim_length = int(st.session_state.get("sim_length", 250))
-                st.session_state["vaccination_campaigns"] = _cdc_pertussis_campaigns(sim_length)
-                st.success("Loaded 3 DTaP/Tdap campaign lines. Adjust coverage/efficacy/timing below as needed.")
+            saved = load_saved_campaigns()
+            names = list(saved.keys())
+            sel = st.selectbox("Campaign set", options=names, key="pert_saved_set")
+            cols = st.columns(2, gap="small")
+            with cols[0]:
+                if st.button("Load into scenario", use_container_width=True):
+                    st.session_state["vaccination_campaigns"] = copy.deepcopy(saved.get(sel, []))
+                    st.success(f"Loaded '{sel}' ({len(saved.get(sel, []))} campaigns). Adjust below as needed.")
+            with cols[1]:
+                if st.button("Replace with (append)", use_container_width=True,
+                             help="Append this set to the current campaigns instead of replacing them."):
+                    st.session_state.setdefault("vaccination_campaigns", [])
+                    st.session_state["vaccination_campaigns"].extend(copy.deepcopy(saved.get(sel, [])))
+                    st.success(f"Appended '{sel}' ({len(saved.get(sel, []))} campaigns).")
 
     # ---- Add new campaign card
     with st.container(border=True):
