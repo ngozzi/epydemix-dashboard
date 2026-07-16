@@ -98,7 +98,8 @@ def fit_error(obs: dict, mod: dict) -> dict:
 # Seed initial conditions directly from observed counts
 # ----------------------------------------------------------------------------
 def seed_ic_from_observed(Nk, raw: dict, immune_pct: float,
-                          partial_immune_pct: float = 71.0) -> dict:
+                          partial_immune_pct: float = 71.0,
+                          immune_pct_by_age=None) -> dict:
     """
     Build an 8-compartment initial-conditions dict where the seeded infections
     reproduce the observed age x vaccination distribution:
@@ -127,8 +128,12 @@ def seed_ic_from_observed(Nk, raw: dict, immune_pct: float,
         ic["Ep"][i] = partial / 2.0
         ic["Ip"][i] = partial / 2.0
 
-    # background immunity pool -> Sp / Rp / R
-    immune = Nk * (immune_pct / 100.0)
+    # background immunity pool -> Sp / Rp / R. A per-age immunity vector (e.g. real
+    # vaccination coverage by band) overrides the uniform immune_pct when supplied.
+    if immune_pct_by_age is not None:
+        immune = Nk * (np.asarray(immune_pct_by_age, dtype=float) / 100.0)
+    else:
+        immune = Nk * (immune_pct / 100.0)
     sp = partial_immune_pct / 100.0
     rem = max(0.0, 1.0 - sp)
     ic["Sp"] = immune * sp

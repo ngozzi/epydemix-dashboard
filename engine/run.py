@@ -47,20 +47,32 @@ def create_vaccination_rate_function(eligible_compartments):
         total_doses = params[0][data["t"]]
 
         # Compute the total eligible population (sum of all specified compartments)
-        eligible_pop = sum(data["pop"][data["comp_indices"][comp]] 
+        eligible_pop = sum(data["pop"][data["comp_indices"][comp]]
                           for comp in eligible_compartments)
-        
-        # Compute the fraction of susceptible population w.r.t eligible population
-        fraction_S = data["pop"][data["comp_indices"]["S"]] / eligible_pop
+
+        S_pop = data["pop"][data["comp_indices"]["S"]]
+
+        # Compute the fraction of susceptible population w.r.t eligible population.
+        # Guard against empty age groups (eligible_pop == 0) which would otherwise
+        # produce NaN/Inf and feed invalid rates into the stochastic engine.
+        fraction_S = np.divide(
+            S_pop, eligible_pop,
+            out=np.zeros_like(S_pop, dtype=float),
+            where=np.asarray(eligible_pop) > 0,
+        )
         effective_doses = total_doses * fraction_S
 
-        # Compute the rate of vaccination for each age group
-        # (edge case: more doses than S individuals -> rate_vax ~ 0.999)
+        # Compute the rate of vaccination for each age group. When no one is
+        # susceptible in an age group the rate is 0; when doses meet or exceed the
+        # susceptible pool the rate saturates just below 1.
         rate_vax = []
         for i in range(len(effective_doses)):
-            if effective_doses[i] < data["pop"][data["comp_indices"]["S"]][i]: 
-                rate_vax.append(effective_doses[i] / data["pop"][data["comp_indices"]["S"]][i])
-            else: 
+            s_i = S_pop[i]
+            if s_i <= 0:
+                rate_vax.append(0.0)
+            elif effective_doses[i] < s_i:
+                rate_vax.append(effective_doses[i] / s_i)
+            else:
                 rate_vax.append(0.999)
 
         return np.array(rate_vax)
@@ -69,7 +81,8 @@ def create_vaccination_rate_function(eligible_compartments):
 
 
 def create_initial_conditions(model, Nk, infected_pct, immune_pct,
-                              partial_infection_pct=33.0, partial_immune_pct=71.0):
+                              partial_infection_pct=33.0, partial_immune_pct=71.0,
+                              immune_pct_by_age=None):
     if model == "SEIR (Measles)":
         # initialize
         ic = {
@@ -135,7 +148,12 @@ def create_initial_conditions(model, Nk, infected_pct, immune_pct,
 
         # background immunity pool -> Sp (partial susceptible), Rp, R.
         # Sp share is user-controlled; the remainder keeps the Rp:R ratio (0.24:0.05).
-        immune = Nk * (immune_pct / 100.)
+        # A per-age-band immunity vector (e.g. real vaccination coverage) overrides
+        # the uniform immune_pct when supplied.
+        if immune_pct_by_age is not None:
+            immune = Nk * (np.asarray(immune_pct_by_age, dtype=float) / 100.)
+        else:
+            immune = Nk * (immune_pct / 100.)
         sp_share = partial_immune_pct / 100.
         remainder = max(0., 1. - sp_share)
         rp_share = remainder * (0.24 / 0.29)
@@ -530,6 +548,13 @@ def run_pertussis_stub(scenario: dict) -> pd.DataFrame:
         }
     )
 
+    # Optional age-stratified immunity vector (e.g. real vaccination coverage by
+    # age band) overrides the uniform "Background immunity" slider.
+    immune_by_age = None
+    if scenario.get("use_age_immunity") and scenario.get("age_immunity_pct"):
+        ai = scenario["age_immunity_pct"]
+        immune_by_age = [float(ai.get(a, 0.0)) for a in DEFAULT_AGE_GROUPS]
+
     # Initial conditions: either seeded from an observed case dataset, or from
     # the initial-condition sliders.
     if scenario.get("observed_mode") == "Seed initial state" and scenario.get("observed_dataset"):
@@ -541,6 +566,7 @@ def run_pertussis_stub(scenario: dict) -> pd.DataFrame:
             raw,
             immune_pct=scenario["initial_conditions"]["immune_pct"],
             partial_immune_pct=scenario["initial_conditions"].get("partial_immune_pct", 71.0),
+            immune_pct_by_age=immune_by_age,
         )
     else:
         ic = create_initial_conditions(
@@ -550,6 +576,7 @@ def run_pertussis_stub(scenario: dict) -> pd.DataFrame:
             scenario["initial_conditions"]["immune_pct"],
             partial_infection_pct=scenario["initial_conditions"].get("partial_infection_pct", 33.0),
             partial_immune_pct=scenario["initial_conditions"].get("partial_immune_pct", 71.0),
+            immune_pct_by_age=immune_by_age,
         )
 
     # Apply Contact interventions

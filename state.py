@@ -166,6 +166,9 @@ def build_current_config(model: str, geography: str) -> Dict[str, Any]:
         # Observed dataset selection (pertussis calibration/comparison)
         "observed_dataset": st.session_state.get("observed_dataset", None),
         "observed_mode": st.session_state.get("observed_mode", "Off"),
+        # Age-stratified initial immunity (from the Vaccination Planner page)
+        "use_age_immunity": bool(st.session_state.get("use_age_immunity", False)),
+        "age_immunity_pct": deepcopy(st.session_state.get("age_immunity_pct", None)),
     }
     return cfg
 
