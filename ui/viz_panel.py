@@ -574,7 +574,7 @@ def render_demographic_and_contacts_tab(
 
     view = st.radio(
             "Display",
-            options=["Population", "Contact Matrix"],
+            options=["Population", "Contact Matrix", "Contacts by setting"],
             horizontal=True,
         )
 
@@ -641,10 +641,66 @@ def render_demographic_and_contacts_tab(
         # Contact Matrix Plot
         plot_contact_matrix(
             layer=layer,
-            matrices=contact_matrices,  
-            groups=population.Nk_names,  
+            matrices=contact_matrices,
+            groups=population.Nk_names,
             facecolor="#0c1019",
             cmap="oranges",
+        )
+
+    # Contacts-by-setting summary (age-mixing story across home/school/work/community)
+    if view == "Contacts by setting":
+        st.caption(
+            "Average daily contacts **made by** a person in each age band, split by "
+            "setting (row sums of each layer's contact matrix). This is the age-mixing "
+            "structure that drives transmission — e.g. school-age bands dominate the "
+            "school setting while the youngest and oldest make no workplace contacts."
+        )
+
+        settings = ["home", "school", "work", "community"]
+        groups = list(population.Nk_names)
+        rows = []
+        for layer_name in settings:
+            if layer_name not in population.contact_matrices:
+                continue
+            made = np.asarray(population.contact_matrices[layer_name]).sum(axis=1)
+            for i, ag in enumerate(groups):
+                rows.append({"age_group": ag, "setting": layer_name, "contacts": float(made[i])})
+        mix_df = pd.DataFrame(rows)
+
+        chart = (
+            alt.Chart(mix_df)
+            .mark_bar()
+            .encode(
+                x=alt.X("age_group:N", title="Age group", sort=groups),
+                y=alt.Y("contacts:Q", title="Contacts made per person / day"),
+                color=alt.Color(
+                    "setting:N", title="Setting",
+                    scale=alt.Scale(domain=settings, scheme="set2"),
+                    sort=settings,
+                ),
+                order=alt.Order("setting:N", sort="ascending"),
+                tooltip=["age_group:N", "setting:N", alt.Tooltip("contacts:Q", format=".2f")],
+            )
+        )
+        st.altair_chart(chart, use_container_width=True)
+
+        # Table (age band x setting, with total) + download
+        pivot = (
+            mix_df.pivot(index="age_group", columns="setting", values="contacts")
+            .reindex(index=groups, columns=settings)
+        )
+        pivot["total"] = pivot.sum(axis=1)
+        st.dataframe(pivot.round(2), use_container_width=True)
+        st.download_button(
+            "Download contacts-by-setting (CSV)",
+            data=pivot.round(3).to_csv(index=True).encode("utf-8"),
+            file_name=f"{country_name}_contacts_by_setting.csv",
+            mime="text/csv",
+        )
+        st.caption(
+            "Note: bands are coarse (e.g. 5-19 averages kindergarten through college), "
+            "and the community layer in this dataset depends only on the age contacted, "
+            "not the contactor — so its bars are flat across age bands."
         )
 
 
