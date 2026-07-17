@@ -210,3 +210,4 @@ __marimo__/
 
 # Runtime user data (auto-seeded from code on first run)
 data/saved_campaigns.json
+data/saved_coverage.json

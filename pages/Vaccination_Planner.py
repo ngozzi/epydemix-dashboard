@@ -17,6 +17,10 @@ from constants import DEFAULT_AGE_GROUPS
 from data.campaign_store import (
     load_saved_campaigns, save_campaign_set, delete_campaign_set, DEFAULT_SET_NAME,
 )
+from data.coverage_store import (
+    load_saved_coverage, save_coverage_profile, delete_coverage_profile,
+    DEFAULT_PROFILE_NAME as DEFAULT_COVERAGE_NAME,
+)
 
 st.set_page_config(
     page_title="Vaccination Planner",
@@ -197,27 +201,46 @@ with sv2:
 st.divider()
 
 # =============================================================================
-# 2. Actual vaccination coverage by age (for calibration)
+# 2. Vaccination coverage by age (saved profiles)
 # =============================================================================
-st.header("2 · Actual vaccination coverage by age (calibration)")
+st.header("2 · Vaccination coverage by age (saved profiles)")
 st.caption(
-    "Enter your real vaccination / up-to-date coverage per age band. Applying it "
-    "sets the model's starting immunity landscape by age (the partially-immune Sₚ "
-    "pool), replacing the uniform 'Background immunity' slider — so a run can be "
-    "calibrated against your actual data. Currently applies to the pertussis model."
+    "Named coverage profiles map each age band to a percent immune / up-to-date. "
+    "They are stored on disk (data/saved_coverage.json) and persist between sessions; "
+    "the **Lane County (observed)** profile — derived from the same case data used in "
+    "the calibration area (percent of cases up-to-date by age) — is provided by default. "
+    "Applying a profile sets "
+    "the model's starting immunity by age (the partially-immune Sₚ pool), overriding the "
+    "uniform 'Background immunity' slider. Saved profiles are also selectable from the "
+    "main **Dashboard** under Initial conditions."
 )
 
-existing = st.session_state.get("age_immunity_pct") or {}
+cov_profiles = load_saved_coverage()
+prof_names = list(cov_profiles.keys())
+
+p1, p2 = st.columns([1.6, 0.7], gap="small")
+with p1:
+    sel_prof = st.selectbox("Coverage profile", options=prof_names, key="planner_cov_profile")
+with p2:
+    st.markdown("<div style='height:1.8em'></div>", unsafe_allow_html=True)
+    disabled_pdel = (sel_prof == DEFAULT_COVERAGE_NAME)
+    if st.button("Delete profile", use_container_width=True, key="planner_del_cov", disabled=disabled_pdel,
+                 help="The default Oregon profile cannot be deleted." if disabled_pdel else None):
+        delete_coverage_profile(sel_prof)
+        st.success(f"Deleted '{sel_prof}'.")
+        st.rerun()
+
+# Grid pre-filled from the selected profile (keyed by profile so switching resets it)
+prof_vals = cov_profiles.get(sel_prof, {})
 cov_default = pd.DataFrame(
     {
         "Age group": DEFAULT_AGE_GROUPS,
-        "% immune / up-to-date": [float(existing.get(ag, 0.0)) for ag in DEFAULT_AGE_GROUPS],
+        "% immune / up-to-date": [float(prof_vals.get(ag, 0.0)) for ag in DEFAULT_AGE_GROUPS],
     }
 )
-
 cov_edited = st.data_editor(
     cov_default,
-    key="age_immunity_editor",
+    key=f"age_immunity_editor_{sel_prof}",
     hide_index=True,
     num_rows="fixed",
     use_container_width=True,
@@ -231,21 +254,41 @@ cov_edited = st.data_editor(
 )
 
 active = bool(st.session_state.get("use_age_immunity", False))
-st.caption(f"Age-stratified immunity is currently **{'ON' if active else 'OFF'}**.")
+active_prof = st.session_state.get("age_immunity_profile")
+st.caption(
+    f"Age-stratified immunity is currently **{'ON' if active else 'OFF'}**"
+    + (f" — profile: **{active_prof}**." if active and active_prof else ".")
+)
 
-d1, d2 = st.columns(2, gap="small")
-with d1:
-    if st.button("Use as initial immunity", type="primary", use_container_width=True):
+a1, a2 = st.columns(2, gap="small")
+with a1:
+    if st.button("Apply to scenario", type="primary", use_container_width=True, key="cov_apply"):
         st.session_state["age_immunity_pct"] = {
             r["Age group"]: float(r["% immune / up-to-date"]) for _, r in cov_edited.iterrows()
         }
         st.session_state["use_age_immunity"] = True
-        st.success("Saved. The pertussis model will start from this age-stratified immunity. "
+        st.session_state["age_immunity_profile"] = sel_prof
+        st.success("Applied. The pertussis model will start from this age-stratified immunity. "
                    "Go to the Dashboard and click Run.")
-with d2:
-    if st.button("Revert to uniform slider", use_container_width=True):
+with a2:
+    if st.button("Revert to uniform slider", use_container_width=True, key="cov_revert"):
         st.session_state["use_age_immunity"] = False
-        st.success("Reverted. Runs will use the uniform 'Background immunity' slider again.")
+        st.success("Reverted. Runs use the uniform 'Background immunity' slider again.")
+
+cs1, cs2 = st.columns([1.6, 0.8], gap="small")
+with cs1:
+    cov_save_name = st.text_input("Save current grid as profile", value=sel_prof, key="cov_save_name")
+with cs2:
+    st.markdown("<div style='height:1.8em'></div>", unsafe_allow_html=True)
+    if st.button("Save profile", use_container_width=True, key="cov_save"):
+        name = (cov_save_name or "").strip()
+        if not name:
+            st.warning("Enter a profile name.")
+        else:
+            mapping = {r["Age group"]: float(r["% immune / up-to-date"]) for _, r in cov_edited.iterrows()}
+            save_coverage_profile(name, mapping)
+            st.success(f"Saved profile '{name}' — persists between sessions and is selectable on the Dashboard.")
+            st.rerun()
 
 st.divider()
 show_logos()
