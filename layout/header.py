@@ -14,3 +14,11 @@ def show_dashboard_header():
                 </div>
                 """, unsafe_allow_html=True)
     st.caption("Build Scenarios. Run Simulations. Explore Insights.")
+    st.caption(
+        "EpyScenario built as part of the EpiStorm team by ISI Foundation, in support of "
+        "Northeastern University CDC CFA Insight Net funding."
+    )
+    st.caption(
+        "Pertussis model extended by the SOAR International Responder Systems IT development "
+        "team, also part of the CFA Insight Net."
+    )

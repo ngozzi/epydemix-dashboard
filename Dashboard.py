@@ -1,3 +1,19 @@
+# --- Native-thread safety -----------------------------------------------------
+# Streamlit runs the app in a worker thread. numpy/BLAS and numexpr (used by
+# epydemix) spawning their own threads from there can cause native segfaults on
+# some platforms. Force single-threaded native math before those libraries are
+# imported. Set as defaults so an explicit environment override still wins.
+import os
+for _v in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS",
+           "NUMEXPR_NUM_THREADS", "NUMEXPR_MAX_THREADS", "VECLIB_MAXIMUM_THREADS"):
+    os.environ.setdefault(_v, "1")
+try:
+    import numexpr
+    numexpr.set_num_threads(1)
+except Exception:
+    pass
+# -----------------------------------------------------------------------------
+
 import streamlit as st
 from layout.header import show_dashboard_header
 from layout.sidebar import render_sidebar

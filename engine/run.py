@@ -15,6 +15,7 @@ SEASONALITY_OPTIONS = {
     "Moderate": 0.65,
     "Medium": 0.75,
     "Weak": 0.85,
+    "Low": 0.9,
     "None": 1.0,
 }
 
@@ -46,20 +47,32 @@ def create_vaccination_rate_function(eligible_compartments):
         total_doses = params[0][data["t"]]
 
         # Compute the total eligible population (sum of all specified compartments)
-        eligible_pop = sum(data["pop"][data["comp_indices"][comp]] 
+        eligible_pop = sum(data["pop"][data["comp_indices"][comp]]
                           for comp in eligible_compartments)
-        
-        # Compute the fraction of susceptible population w.r.t eligible population
-        fraction_S = data["pop"][data["comp_indices"]["S"]] / eligible_pop
+
+        S_pop = data["pop"][data["comp_indices"]["S"]]
+
+        # Compute the fraction of susceptible population w.r.t eligible population.
+        # Guard against empty age groups (eligible_pop == 0) which would otherwise
+        # produce NaN/Inf and feed invalid rates into the stochastic engine.
+        fraction_S = np.divide(
+            S_pop, eligible_pop,
+            out=np.zeros_like(S_pop, dtype=float),
+            where=np.asarray(eligible_pop) > 0,
+        )
         effective_doses = total_doses * fraction_S
 
-        # Compute the rate of vaccination for each age group
-        # (edge case: more doses than S individuals -> rate_vax ~ 0.999)
+        # Compute the rate of vaccination for each age group. When no one is
+        # susceptible in an age group the rate is 0; when doses meet or exceed the
+        # susceptible pool the rate saturates just below 1.
         rate_vax = []
         for i in range(len(effective_doses)):
-            if effective_doses[i] < data["pop"][data["comp_indices"]["S"]][i]: 
-                rate_vax.append(effective_doses[i] / data["pop"][data["comp_indices"]["S"]][i])
-            else: 
+            s_i = S_pop[i]
+            if s_i <= 0:
+                rate_vax.append(0.0)
+            elif effective_doses[i] < s_i:
+                rate_vax.append(effective_doses[i] / s_i)
+            else:
                 rate_vax.append(0.999)
 
         return np.array(rate_vax)
@@ -67,7 +80,9 @@ def create_vaccination_rate_function(eligible_compartments):
     return compute_vaccination_rate
 
 
-def create_initial_conditions(model, Nk, infected_pct, immune_pct): 
+def create_initial_conditions(model, Nk, infected_pct, immune_pct,
+                              partial_infection_pct=33.0, partial_immune_pct=71.0,
+                              immune_pct_by_age=None):
     if model == "SEIR (Measles)":
         # initialize
         ic = {
@@ -90,7 +105,7 @@ def create_initial_conditions(model, Nk, infected_pct, immune_pct):
 
         return ic
 
-    elif model == "SEIRS (Influenza)": 
+    elif model == "SEIRS (Influenza)":
         # initialize
         ic = {
             "S": np.zeros_like(Nk), 
@@ -113,7 +128,47 @@ def create_initial_conditions(model, Nk, infected_pct, immune_pct):
 
         return ic
 
-    elif model == "SEIHR (COVID-19)": 
+    elif model == "SEIRS (Pertussis)":
+        # 8-compartment partial-immunity model. Seed infections across both the
+        # naive (E/I) and partial (Ep/Ip) tracks, and distribute the background
+        # immunity pool across Sp/Rp/R using endemic-like proportions
+        # (most vaccinated individuals sit in the partially-immune Sp pool).
+        ic = {c: np.zeros_like(Nk) for c in ["S", "E", "I", "R", "Sp", "Ep", "Ip", "Rp"]}
+
+        # infected: split between naive and partial tracks (user-controlled),
+        # each track split evenly between exposed and infectious
+        total_infected = Nk * (infected_pct / 100.)
+        partial_frac = partial_infection_pct / 100.
+        naive_inf = total_infected * (1. - partial_frac)
+        partial_inf = total_infected * partial_frac
+        ic["E"] = (naive_inf / 2).astype(int)
+        ic["I"] = (naive_inf / 2).astype(int)
+        ic["Ep"] = (partial_inf / 2).astype(int)
+        ic["Ip"] = (partial_inf / 2).astype(int)
+
+        # background immunity pool -> Sp (partial susceptible), Rp, R.
+        # Sp share is user-controlled; the remainder keeps the Rp:R ratio (0.24:0.05).
+        # A per-age-band immunity vector (e.g. real vaccination coverage) overrides
+        # the uniform immune_pct when supplied.
+        if immune_pct_by_age is not None:
+            immune = Nk * (np.asarray(immune_pct_by_age, dtype=float) / 100.)
+        else:
+            immune = Nk * (immune_pct / 100.)
+        sp_share = partial_immune_pct / 100.
+        remainder = max(0., 1. - sp_share)
+        rp_share = remainder * (0.24 / 0.29)
+        r_share = remainder * (0.05 / 0.29)
+        ic["Sp"] = (immune * sp_share).astype(int)
+        ic["Rp"] = (immune * rp_share).astype(int)
+        ic["R"] = (immune * r_share).astype(int)
+
+        # remaining fully-susceptible naive individuals
+        ic["S"] = (Nk - ic["E"] - ic["I"] - ic["Ep"] - ic["Ip"]
+                   - ic["Sp"] - ic["Rp"] - ic["R"])
+
+        return ic
+
+    elif model == "SEIHR (COVID-19)":
         # initialize
         ic = {
             "S": np.zeros_like(Nk), 
@@ -141,7 +196,7 @@ def create_initial_conditions(model, Nk, infected_pct, immune_pct):
 
 
 def compute_beta(model, R0, C, params): 
-    if model in ["SEIR (Measles)", "SEIRS (Influenza)", "SEIHR (COVID-19)"]:
+    if model in ["SEIR (Measles)", "SEIRS (Influenza)", "SEIRS (Pertussis)", "SEIHR (COVID-19)"]:
         return R0 * (1 / params["infectious_period"]) / np.linalg.eigvals(C.sum(axis=0)).real.max()
     else:
         raise ValueError(f"Model {model} not supported")
@@ -413,9 +468,171 @@ def run_seir_stub(scenario: dict) -> pd.DataFrame:
     return df_median_comp, df_median_trans
 
 
+def run_pertussis_stub(scenario: dict) -> pd.DataFrame:
+    """
+    Age-structured pertussis model: 8-compartment SEIRS with a parallel
+    partial-immunity track (Wearing & Rohani 2009).
+
+        Naive track    : S  -> E  -> I  -> R
+        Partial track  : Sp -> Ep -> Ip -> Rp
+        Cross-links    : S -> Sp (vaccination), R -> Sp (omega1),
+                         Rp -> S (omega2), Sp -> S (omega3)
+
+    omega3 is vaccine-derived waning. Without it Sp has only one exit
+    (infection), so a vaccinated individual who avoids infection stays at
+    reduced susceptibility delta indefinitely -- wrong for pertussis, where
+    DTaP protection wanes within 5-10 years and drives adolescent resurgence.
+    Note omega1/omega2 are *post-infection* waning and do not cover this.
+
+    Force of infection is driven by both I and Ip: beta * (I + sigma * Ip).
+    Because epydemix mediated transitions take a single mediating compartment,
+    the combined force of infection is split into one transition per source
+    compartment. Partial susceptibles (Sp) are infected at reduced rate delta.
+    R0 is defined on the naive track (beta / gamma_naive).
+    """
+    sim_length = int(scenario.get("sim_length", 250))
+    dt = float(scenario.get("time_step", 0.2))
+    age_groups = DEFAULT_AGE_GROUPS
+    mp = scenario["model_params"]
+
+    # Build model (no V compartment; vaccination routes S -> Sp)
+    model = EpiModel(compartments=["S", "E", "I", "R", "Sp", "Ep", "Ip", "Rp"])
+
+    # Force of infection on naive susceptibles: beta * (I + sigma * Ip)
+    model.add_transition("S", "E", params=("beta", "I"), kind="mediated")
+    model.add_transition("S", "E", params=("beta_sigma", "Ip"), kind="mediated")
+
+    # Force of infection on partial susceptibles: delta * beta * (I + sigma * Ip)
+    model.add_transition("Sp", "Ep", params=("beta_delta", "I"), kind="mediated")
+    model.add_transition("Sp", "Ep", params=("beta_delta_sigma", "Ip"), kind="mediated")
+
+    # Incubation (latent -> infectious)
+    model.add_transition("E", "I", params=("gamma"), kind="spontaneous")
+    model.add_transition("Ep", "Ip", params=("gamma"), kind="spontaneous")
+
+    # Recovery (partial track recovers faster: milder, shorter illness)
+    model.add_transition("I", "R", params=("mu"), kind="spontaneous")
+    model.add_transition("Ip", "Rp", params=("mu_p"), kind="spontaneous")
+
+    # Waning immunity (post-infection)
+    model.add_transition("R", "Sp", params=("omega1"), kind="spontaneous")
+    model.add_transition("Rp", "S", params=("omega2"), kind="spontaneous")
+
+    # Waning immunity (vaccine-derived): Sp -> S
+    model.add_transition("Sp", "S", params=("omega3"), kind="spontaneous")
+
+    # Add population
+    model.set_population(scenario["population"])
+
+    # Vaccination moves susceptibles into the partially-immune pool: S -> Sp
+    vax_rate_function = create_vaccination_rate_function(scenario["vaccination_settings"]["target_compartments"])
+    model.register_transition_kind("vaccination", vax_rate_function)
+    model.add_transition("S", "Sp", params=(scenario["daily_doses_by_age"][age_groups].values,), kind="vaccination")
+
+    # Set parameters
+    C = np.array([scenario["population"].contact_matrices[layer] for layer in scenario["population"].contact_matrices])
+    beta = compute_beta(scenario["model"], mp["R0"], C, mp)
+    seasonality_factor = compute_seasonality_factor(
+        START_DATE,
+        START_DATE + timedelta(days=sim_length),
+        mp["seasonality_peak_day"],
+        SEASONALITY_OPTIONS[mp["seasonality_amplitude"]],
+        dt=dt,
+    )
+    beta_t = beta * seasonality_factor
+    sigma = mp["rel_infectiousness_partial"]
+    delta = mp["rel_susceptibility_partial"]
+
+    model.add_parameter(
+        parameters_dict={
+            "beta": beta_t,
+            "beta_sigma": beta_t * sigma,
+            "beta_delta": beta_t * delta,
+            "beta_delta_sigma": beta_t * delta * sigma,
+            "gamma": 1. / mp["incubation_period"],
+            "mu": 1. / mp["infectious_period"],
+            "mu_p": 1. / mp["infectious_period_partial"],
+            "omega1": 1. / (mp["waning_full_to_partial_years"] * 365.),
+            "omega2": 1. / (mp["waning_partial_to_susceptible_years"] * 365.),
+            # .get() so scenarios saved before omega3 existed still run
+            "omega3": 1. / (mp.get("waning_vaccine_to_susceptible_years", 10.0) * 365.),
+        }
+    )
+
+    # Optional age-stratified immunity vector (e.g. real vaccination coverage by
+    # age band) overrides the uniform "Background immunity" slider.
+    immune_by_age = None
+    if scenario.get("use_age_immunity") and scenario.get("age_immunity_pct"):
+        ai = scenario["age_immunity_pct"]
+        immune_by_age = [float(ai.get(a, 0.0)) for a in DEFAULT_AGE_GROUPS]
+
+    # Initial conditions: either seeded from an observed case dataset, or from
+    # the initial-condition sliders.
+    if scenario.get("observed_mode") == "Seed initial state" and scenario.get("observed_dataset"):
+        from engine.calibration import seed_ic_from_observed
+        from data.observed_datasets import OBSERVED_DATASETS
+        raw = OBSERVED_DATASETS[scenario["observed_dataset"]]["raw"]
+        ic = seed_ic_from_observed(
+            model.population.Nk,
+            raw,
+            immune_pct=scenario["initial_conditions"]["immune_pct"],
+            partial_immune_pct=scenario["initial_conditions"].get("partial_immune_pct", 71.0),
+            immune_pct_by_age=immune_by_age,
+        )
+    else:
+        ic = create_initial_conditions(
+            scenario["model"],
+            model.population.Nk,
+            scenario["initial_conditions"]["infected_pct"],
+            scenario["initial_conditions"]["immune_pct"],
+            partial_infection_pct=scenario["initial_conditions"].get("partial_infection_pct", 33.0),
+            partial_immune_pct=scenario["initial_conditions"].get("partial_immune_pct", 71.0),
+            immune_pct_by_age=immune_by_age,
+        )
+
+    # Apply Contact interventions
+    for intervention in scenario["contact_interventions"]:
+        if intervention["layer"] == "all":
+            for layer in LAYER_NAMES:
+                model.add_intervention(
+                    layer_name=layer,
+                    start_date=START_DATE + timedelta(days=intervention["start_day"]),
+                    end_date=START_DATE + timedelta(days=intervention["end_day"]),
+                    reduction_factor=1.0 - (intervention["reduction_pct"] / 100.)
+                )
+        else:
+            model.add_intervention(
+                    layer_name=intervention["layer"],
+                    start_date=START_DATE + timedelta(days=intervention["start_day"]),
+                    end_date=START_DATE + timedelta(days=intervention["end_day"]),
+                    reduction_factor=1.0 - (intervention["reduction_pct"] / 100.)
+                )
+
+    # Run Simulations
+    results = model.run_simulations(
+            Nsim=N_SIM,
+            start_date=START_DATE,
+            end_date=START_DATE + timedelta(days=sim_length),
+            initial_conditions_dict=ic,
+            dt=dt,
+        )
+
+    # Format Output (compartments and transitions)
+    df_median_comp = results.get_quantiles_compartments(quantiles=[0.5])
+    df_median_comp["t"] = np.arange(len(df_median_comp), dtype=int) + 1
+    df_median_comp.drop(columns=["quantile", "date"], inplace=True)
+
+    df_median_trans = results.get_quantiles_transitions(quantiles=[0.5])
+    df_median_trans["t"] = np.arange(len(df_median_trans), dtype=int) + 1
+    df_median_trans.drop(columns=["quantile", "date"], inplace=True)
+
+    return df_median_comp, df_median_trans
+
+
 MODEL_RUNNERS: dict[str, Callable[..., pd.DataFrame]] = {
     "SEIR (Measles)": run_seir_stub,
     "SEIRS (Influenza)": run_seirs_stub,
+    "SEIRS (Pertussis)": run_pertussis_stub,
     "SEIHR (COVID-19)": run_seihr_stub,
 }
 

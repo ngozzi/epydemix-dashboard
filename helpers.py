@@ -75,7 +75,13 @@ def build_compartment_timeseries_df(trj, comp=None, age=None):
 
 def data_uri(path):
     p = Path(path)
-    mime = "image/svg+xml" if p.suffix.lower()==".svg" else "image/png"
+    suffix = p.suffix.lower()
+    if suffix == ".svg":
+        mime = "image/svg+xml"
+    elif suffix in (".jpg", ".jpeg"):
+        mime = "image/jpeg"
+    else:
+        mime = "image/png"
     b64 = base64.b64encode(p.read_bytes()).decode()
     return f"data:{mime};base64,{b64}"
 

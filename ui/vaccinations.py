@@ -1,8 +1,16 @@
+import copy
 import streamlit as st
 from constants import DEFAULT_AGE_GROUPS
 from state import ensure_vax_state_defaults, ensure_vax_settings_defaults
+from data.campaign_store import default_dtap_campaigns, load_saved_campaigns
 
 ROLLOUT_SHAPES = ["flat", "ramp"]
+
+
+def _cdc_pertussis_campaigns(sim_length: int) -> list[dict]:
+    """CDC DTaP/Tdap schedule as campaigns. Kept as a thin wrapper around the
+    persistent campaign store so there is a single source of truth."""
+    return default_dtap_campaigns(sim_length)
 
 
 def _validate_campaign(start_day: int, end_day: int, ramp_days: int, rollout: str) -> str | None:
@@ -60,6 +68,10 @@ def render_vaccination_campaigns(model: str, age_groups: list[str] | None = None
         compartments = ["S", "E", "I", "R"]
     elif model == "SEIRS (Influenza)":
         compartments = ["S", "E", "I", "R"]
+    elif model == "SEIRS (Pertussis)":
+        # Vaccination moves naive susceptibles into the partial-immunity pool
+        # (S -> Sp), so the eligible pool is the naive susceptibles.
+        compartments = ["S"]
     elif model == "SEIHR (COVID-19)":
         compartments = ["S", "E", "I", "H", "R"]
     else:
@@ -72,6 +84,30 @@ def render_vaccination_campaigns(model: str, age_groups: list[str] | None = None
         "Add one or more vaccination campaigns. Vaccination is modeled as all-or-nothing and is applied to susceptibility. "
         "Choose different coverage, effectiveness, rollout shapes and (optionally) which compartments are eligible."
     )
+
+    # ---- Pertussis: load a saved campaign set (managed in the Vaccination Planner)
+    if model == "SEIRS (Pertussis)":
+        with st.container(border=True):
+            st.markdown("**Saved campaign sets**")
+            st.caption(
+                "Load a persistent campaign set into this scenario. The default "
+                "**DTaP/Tdap (CDC)** set is always available; create and save your own "
+                "on the **Vaccination Planner** page (they persist between sessions)."
+            )
+            saved = load_saved_campaigns()
+            names = list(saved.keys())
+            sel = st.selectbox("Campaign set", options=names, key="pert_saved_set")
+            cols = st.columns(2, gap="small")
+            with cols[0]:
+                if st.button("Load into scenario", use_container_width=True):
+                    st.session_state["vaccination_campaigns"] = copy.deepcopy(saved.get(sel, []))
+                    st.success(f"Loaded '{sel}' ({len(saved.get(sel, []))} campaigns). Adjust below as needed.")
+            with cols[1]:
+                if st.button("Replace with (append)", use_container_width=True,
+                             help="Append this set to the current campaigns instead of replacing them."):
+                    st.session_state.setdefault("vaccination_campaigns", [])
+                    st.session_state["vaccination_campaigns"].extend(copy.deepcopy(saved.get(sel, [])))
+                    st.success(f"Appended '{sel}' ({len(saved.get(sel, []))} campaigns).")
 
     # ---- Add new campaign card
     with st.container(border=True):

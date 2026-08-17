@@ -163,6 +163,12 @@ def build_current_config(model: str, geography: str) -> Dict[str, Any]:
         "daily_doses_by_age": deepcopy(df_doses),
         "daily_doses_by_age_daily": deepcopy(df_doses_daily),
         "spectral_radius_df": deepcopy(spectral_radius_df),
+        # Observed dataset selection (pertussis calibration/comparison)
+        "observed_dataset": st.session_state.get("observed_dataset", None),
+        "observed_mode": st.session_state.get("observed_mode", "Off"),
+        # Age-stratified initial immunity (from the Vaccination Planner page)
+        "use_age_immunity": bool(st.session_state.get("use_age_immunity", False)),
+        "age_immunity_pct": deepcopy(st.session_state.get("age_immunity_pct", None)),
     }
     return cfg
 
@@ -210,8 +216,10 @@ def ensure_initial_conditions_defaults(model: str, ic_defaults: dict) -> None:
 
     defaults = ic_defaults.get(model, {"infected_pct": 0.1, "immune_pct": 0.0})
 
-    st.session_state["initial_conditions"].setdefault("infected_pct", float(defaults["infected_pct"]))
-    st.session_state["initial_conditions"].setdefault("immune_pct", float(defaults["immune_pct"]))
+    # Seed every key the model defines (models may add extra fields, e.g. the
+    # pertussis partial-immunity splits) without clobbering existing values.
+    for k, v in defaults.items():
+        st.session_state["initial_conditions"].setdefault(k, float(v))
 
 
 def ensure_contact_interventions_defaults() -> None:
@@ -255,8 +263,7 @@ def reset_initial_conditions_to_defaults(model: str, ic_defaults: dict) -> None:
 
     defaults = ic_defaults.get(model, {"infected_pct": 0.1, "immune_pct": 0.0})
 
-    st.session_state["initial_conditions"] = {
-        "infected_pct": float(defaults["infected_pct"]),
-        "immune_pct": float(defaults["immune_pct"]),
-    }
+    # Replace with a fresh copy of all keys the model defines. Switching models
+    # therefore drops any extra fields that belonged to the previous model.
+    st.session_state["initial_conditions"] = {k: float(v) for k, v in defaults.items()}
 

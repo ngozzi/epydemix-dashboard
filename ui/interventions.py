@@ -68,4 +68,7 @@ def render_contact_interventions() -> None:
 
     if remove_idx is not None:
         removed = st.session_state["contact_interventions"].pop(remove_idx)
-        st.info(f"Removed intervention: {removed.get('layer', 'Layer')} from {removed.get('start_day', 'Start day')} to {removed.get('end_day', 'End day')}")
+        # Rerun so the interventions list re-renders immediately after removal
+        # (the list above was already drawn this run with the pre-removal items).
+        st.toast(f"Removed intervention: {removed.get('layer', 'Layer')} · day {removed.get('start_day')} → {removed.get('end_day')}")
+        st.rerun()
