@@ -476,7 +476,13 @@ def run_pertussis_stub(scenario: dict) -> pd.DataFrame:
         Naive track    : S  -> E  -> I  -> R
         Partial track  : Sp -> Ep -> Ip -> Rp
         Cross-links    : S -> Sp (vaccination), R -> Sp (omega1),
-                         Rp -> S (omega2)
+                         Rp -> S (omega2), Sp -> S (omega3)
+
+    omega3 is vaccine-derived waning. Without it Sp has only one exit
+    (infection), so a vaccinated individual who avoids infection stays at
+    reduced susceptibility delta indefinitely -- wrong for pertussis, where
+    DTaP protection wanes within 5-10 years and drives adolescent resurgence.
+    Note omega1/omega2 are *post-infection* waning and do not cover this.
 
     Force of infection is driven by both I and Ip: beta * (I + sigma * Ip).
     Because epydemix mediated transitions take a single mediating compartment,
@@ -508,9 +514,12 @@ def run_pertussis_stub(scenario: dict) -> pd.DataFrame:
     model.add_transition("I", "R", params=("mu"), kind="spontaneous")
     model.add_transition("Ip", "Rp", params=("mu_p"), kind="spontaneous")
 
-    # Waning immunity
+    # Waning immunity (post-infection)
     model.add_transition("R", "Sp", params=("omega1"), kind="spontaneous")
     model.add_transition("Rp", "S", params=("omega2"), kind="spontaneous")
+
+    # Waning immunity (vaccine-derived): Sp -> S
+    model.add_transition("Sp", "S", params=("omega3"), kind="spontaneous")
 
     # Add population
     model.set_population(scenario["population"])
@@ -545,6 +554,8 @@ def run_pertussis_stub(scenario: dict) -> pd.DataFrame:
             "mu_p": 1. / mp["infectious_period_partial"],
             "omega1": 1. / (mp["waning_full_to_partial_years"] * 365.),
             "omega2": 1. / (mp["waning_partial_to_susceptible_years"] * 365.),
+            # .get() so scenarios saved before omega3 existed still run
+            "omega3": 1. / (mp.get("waning_vaccine_to_susceptible_years", 10.0) * 365.),
         }
     )
 

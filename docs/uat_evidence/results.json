@@ -1,0 +1,302 @@
+[
+  {
+    "id": "P-01",
+    "area": "Pertussis Model",
+    "type": "Positive",
+    "title": "Select the pertussis model activates the partial-immunity structure",
+    "pre": "App open on the Dashboard.",
+    "steps": [
+      "Open the Model dropdown.",
+      "Select 'SEIRS (Pertussis)'."
+    ],
+    "expected": "Model switches to pertussis; the pertussis-only 'Observed data & calibration' panel becomes available.",
+    "status": "Pass",
+    "actual": "Pertussis selected; pertussis-only calibration panel present.",
+    "before": "P-01_before.png",
+    "after": "P-01_after.png"
+  },
+  {
+    "id": "P-02",
+    "area": "Pertussis Model",
+    "type": "Positive",
+    "title": "Model-parameters panel exposes all pertussis parameters",
+    "pre": "Pertussis model selected.",
+    "steps": [
+      "Expand 'Model parameters'."
+    ],
+    "expected": "R0, incubation, naive & partial infectious periods, sigma, delta, three waning terms (omega1/2/3) and seasonality are all shown.",
+    "status": "Pass",
+    "actual": "All pertussis parameters present.",
+    "before": null,
+    "after": "P-02_after.png"
+  },
+  {
+    "id": "P-03",
+    "area": "Pertussis Model",
+    "type": "Positive",
+    "title": "Initial-conditions expose partial-track split and coverage profile",
+    "pre": "Pertussis model selected.",
+    "steps": [
+      "Expand 'Initial conditions'."
+    ],
+    "expected": "Controls for infections-in-partial-track, Sp share of the immune pool, and a saved coverage-profile selector are present.",
+    "status": "Pass",
+    "actual": "Partial-track and coverage-profile controls present.",
+    "before": null,
+    "after": "P-03_after.png"
+  },
+  {
+    "id": "P-04",
+    "area": "Pertussis Model",
+    "type": "Positive",
+    "title": "Baseline scenario runs and produces trajectories",
+    "pre": "Pertussis model + a geography selected.",
+    "steps": [
+      "Click Run.",
+      "Wait for results."
+    ],
+    "expected": "Result tabs appear and the Trajectories chart shows a non-zero infection curve.",
+    "status": "Pass",
+    "actual": "Run completed; trajectories shown.",
+    "before": null,
+    "after": "P-04_after.png"
+  },
+  {
+    "id": "P-05",
+    "area": "Pertussis Model",
+    "type": "Positive",
+    "title": "Partial-track infectious compartment (Ip) is available",
+    "pre": "A run has completed.",
+    "steps": [
+      "On Trajectories, set Compartment to 'Ip'."
+    ],
+    "expected": "The partial-track infectious (Ip) curve is displayed.",
+    "status": "Pass",
+    "actual": "Ip curve displayed.",
+    "before": null,
+    "after": "P-05_after.png"
+  },
+  {
+    "id": "P-06",
+    "area": "Pertussis Model",
+    "type": "Positive",
+    "title": "Summary metrics are computed",
+    "pre": "A run has completed.",
+    "steps": [
+      "Open the 'Summary metrics' tab."
+    ],
+    "expected": "Attack rate, peak prevalence and related metrics are shown by age band.",
+    "status": "Pass",
+    "actual": "Summary metrics shown.",
+    "before": null,
+    "after": "P-06_after.png"
+  },
+  {
+    "id": "P-07",
+    "area": "Pertussis Model",
+    "type": "Positive",
+    "title": "DTaP/Tdap saved campaign set loads into the scenario",
+    "pre": "Pertussis model selected.",
+    "steps": [
+      "Expand 'Vaccination campaigns'.",
+      "Select the 'DTaP/Tdap (CDC)' set.",
+      "Click 'Load into scenario'."
+    ],
+    "expected": "Three DTaP/Tdap campaign lines are loaded into the scenario.",
+    "status": "Pass",
+    "actual": "DTaP/Tdap set loaded.",
+    "before": null,
+    "after": "P-07_after.png"
+  },
+  {
+    "id": "P-08",
+    "area": "Pertussis Model",
+    "type": "Positive",
+    "title": "Observed-data overlay produces an Observed-vs-modeled comparison",
+    "pre": "Lane County observed dataset selected in Overlay mode; a run has completed.",
+    "steps": [
+      "Open the 'Observed vs modeled' tab."
+    ],
+    "expected": "Observed vs modeled vaccinated-share metrics and comparison charts are displayed.",
+    "status": "Pass",
+    "actual": "Observed-vs-modeled comparison shown.",
+    "before": null,
+    "after": "P-08_after.png"
+  },
+  {
+    "id": "P-09",
+    "area": "Pertussis Model",
+    "type": "Positive",
+    "title": "Contacts-by-setting age-mixing view renders",
+    "pre": "A run has completed.",
+    "steps": [
+      "Open the 'Population' tab.",
+      "Choose 'Contacts by setting'."
+    ],
+    "expected": "A per-age-band breakdown of contacts across home/school/work/community is shown.",
+    "status": "Pass",
+    "actual": "Contacts-by-setting shown.",
+    "before": null,
+    "after": "P-09_after.png"
+  },
+  {
+    "id": "P-10",
+    "area": "Pertussis Model",
+    "type": "Negative",
+    "title": "Initial infected + background immunity over 100% is rejected",
+    "pre": "'Initial conditions' expanded.",
+    "steps": [
+      "Set Initial infected to 60%.",
+      "Set Background immunity to 60%."
+    ],
+    "expected": "A validation error states that initial infected + background immunity must be <= 100%.",
+    "status": "Pass",
+    "actual": "Validation error shown for >100%.",
+    "before": "P-10_before.png",
+    "after": "P-10_after.png"
+  },
+  {
+    "id": "I-01",
+    "area": "Intervention Planner",
+    "type": "Positive",
+    "title": "Contact-intervention form is available",
+    "pre": "Pertussis model selected.",
+    "steps": [
+      "Expand 'Contact interventions'."
+    ],
+    "expected": "Layer, Start day, End day, Reduction (%) controls and an Add button are present.",
+    "status": "Pass",
+    "actual": "Intervention form present.",
+    "before": null,
+    "after": "I-01_after.png"
+  },
+  {
+    "id": "I-02",
+    "area": "Intervention Planner",
+    "type": "Positive",
+    "title": "Add a school closure (50%) to the plan",
+    "pre": "'Contact interventions' expanded.",
+    "steps": [
+      "Set Layer to 'school'.",
+      "Set Reduction to ~50%.",
+      "Click Add."
+    ],
+    "expected": "A 'school - 50% - day 0 -> 250' entry appears under 'Added contact interventions'.",
+    "status": "Pass",
+    "actual": "School 50% intervention added.",
+    "before": "I-02_before.png",
+    "after": "I-02_after.png"
+  },
+  {
+    "id": "I-03",
+    "area": "Intervention Planner",
+    "type": "Positive",
+    "title": "Add an all-layers intervention",
+    "pre": "'Contact interventions' expanded.",
+    "steps": [
+      "Set Layer to 'all'.",
+      "Click Add."
+    ],
+    "expected": "An 'all - ... ' entry is added to the interventions list.",
+    "status": "Pass",
+    "actual": "All-layers intervention added.",
+    "before": null,
+    "after": "I-03_after.png"
+  },
+  {
+    "id": "I-04",
+    "area": "Intervention Planner",
+    "type": "Positive",
+    "title": "Remove an intervention",
+    "pre": "At least one intervention exists.",
+    "steps": [
+      "Click 'Remove' on an intervention."
+    ],
+    "expected": "The intervention is removed and the list updates.",
+    "status": "Pass",
+    "actual": "Interventions 2 -> 1.",
+    "before": "I-04_before.png",
+    "after": "I-04_after.png"
+  },
+  {
+    "id": "I-05",
+    "area": "Intervention Planner",
+    "type": "Positive",
+    "title": "A scenario with an intervention runs and reflects the reduction",
+    "pre": "An intervention added; pertussis run.",
+    "steps": [
+      "Add a school closure.",
+      "Click Run.",
+      "Open the 'Contact Interventions' tab."
+    ],
+    "expected": "The run completes and the Contact Interventions tab shows the contact reduction over time.",
+    "status": "Pass",
+    "actual": "Intervention run completed; reduction reflected.",
+    "before": "I-05_before.png",
+    "after": "I-05_after.png"
+  },
+  {
+    "id": "I-06",
+    "area": "Intervention Planner",
+    "type": "Negative",
+    "title": "End day earlier than start day is rejected",
+    "pre": "'Contact interventions' expanded.",
+    "steps": [
+      "Set Start day to 50.",
+      "Set End day to 10.",
+      "Click Add."
+    ],
+    "expected": "A warning states that End day must be greater than or equal to start day; no entry is added.",
+    "status": "Pass",
+    "actual": "Warning shown for end<start.",
+    "before": "I-06_before.png",
+    "after": "I-06_after.png"
+  },
+  {
+    "id": "V-01",
+    "area": "Vaccination Planner",
+    "type": "Positive",
+    "title": "Planner grid is pre-filled with the DTaP/Tdap schedule",
+    "pre": "On the Vaccination Planner page.",
+    "steps": [
+      "Open the Vaccination Planner page."
+    ],
+    "expected": "The age-stratified grid is pre-filled with DTaP/Tdap coverage (0-4: 92%, 5-19: 90%, adults ~7%).",
+    "status": "Pass",
+    "actual": "Planner grid pre-filled with DTaP/Tdap.",
+    "before": null,
+    "after": "V-01_after.png"
+  },
+  {
+    "id": "V-02",
+    "area": "Vaccination Planner",
+    "type": "Positive",
+    "title": "A coverage profile can be saved and persists",
+    "pre": "On the Vaccination Planner page, section 2.",
+    "steps": [
+      "Enter a profile name.",
+      "Click 'Save profile'."
+    ],
+    "expected": "A confirmation states the profile was saved and will persist between sessions.",
+    "status": "Pass",
+    "actual": "Coverage profile saved.",
+    "before": "V-02_before.png",
+    "after": "V-02_after.png"
+  },
+  {
+    "id": "V-03",
+    "area": "Vaccination Planner",
+    "type": "Negative",
+    "title": "Saving a coverage profile with an empty name is rejected",
+    "pre": "On the Vaccination Planner page, section 2.",
+    "steps": [
+      "Clear the profile name.",
+      "Click 'Save profile'."
+    ],
+    "expected": "A warning states that a profile name is required; nothing is saved.",
+    "status": "Pass",
+    "actual": "Empty-name save rejected.",
+    "before": null,
+    "after": "V-03_after.png"
+  }
+]

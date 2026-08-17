@@ -1,0 +1,314 @@
+<style>
+:root{--ground:#fbfcfe;--panel:#fff;--ink:#132132;--muted:#54637a;--faint:#8695a7;
+--navy:#0c447c;--blue:#1f6bb5;--teal:#0f6e56;--amber:#a5701a;--red:#b23a3a;
+--line:#e6ecf3;--line2:#d7e0ea;--chip:#eef4fb;}
+@media(prefers-color-scheme:dark){:root{--ground:#0a1524;--panel:#0f1f33;--ink:#e9eef6;--muted:#a2b2c6;--faint:#7788a0;
+--navy:#bcd6f2;--blue:#7db6ec;--teal:#5dcaa5;--amber:#e3a34c;--red:#f0968f;--line:#1c2f47;--line2:#284063;--chip:#13233a;}}
+:root[data-theme="light"]{--ground:#fbfcfe;--panel:#fff;--ink:#132132;--muted:#54637a;--faint:#8695a7;--navy:#0c447c;--blue:#1f6bb5;--teal:#0f6e56;--amber:#a5701a;--red:#b23a3a;--line:#e6ecf3;--line2:#d7e0ea;--chip:#eef4fb;}
+:root[data-theme="dark"]{--ground:#0a1524;--panel:#0f1f33;--ink:#e9eef6;--muted:#a2b2c6;--faint:#7788a0;--navy:#bcd6f2;--blue:#7db6ec;--teal:#5dcaa5;--amber:#e3a34c;--red:#f0968f;--line:#1c2f47;--line2:#284063;--chip:#13233a;}
+*{box-sizing:border-box}body{margin:0;background:var(--ground);color:var(--ink);
+font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;line-height:1.55;}
+.wrap{max-width:900px;margin:0 auto;padding:40px 24px 72px;}
+h1,h2,h3{color:var(--navy);text-wrap:balance;margin:0;}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--blue);}
+.head{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:30px 32px;box-shadow:0 10px 30px rgba(16,40,70,.06);}
+h1{font-size:34px;font-weight:800;letter-spacing:-.01em;margin-top:8px;}
+.lead{color:var(--muted);font-size:16px;margin-top:14px;max-width:64ch;}
+.meta{display:grid;grid-template-columns:repeat(3,1fr);gap:18px 26px;margin-top:22px;border-top:1px solid var(--line);padding-top:20px;}
+.meta .k{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);}
+.meta .v{font-size:14px;font-weight:600;}
+.pills{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
+.pill{font-size:12.5px;font-weight:700;padding:5px 12px;border-radius:999px;border:1px solid transparent;}
+.pill.pass{color:var(--teal);background:color-mix(in srgb,var(--teal) 12%,transparent);border-color:color-mix(in srgb,var(--teal) 30%,transparent);}
+.pill.fail{color:var(--red);background:color-mix(in srgb,var(--red) 12%,transparent);border-color:color-mix(in srgb,var(--red) 30%,transparent);}
+section{margin-top:40px;}
+h2{font-size:22px;font-weight:800;}
+h2 .n{color:var(--faint);font-weight:700;margin-right:8px;}
+p{color:var(--ink);}
+.note{background:var(--chip);border:1px solid var(--line2);border-radius:12px;padding:16px 18px;color:var(--muted);font-size:14.5px;margin-top:14px;}
+ol.big{padding-left:20px;} ol.big li{margin:8px 0;color:var(--muted);}
+ol.big li b{color:var(--ink);}
+.area-h{display:flex;align-items:center;gap:10px;margin-top:34px;}
+.area-h h3{font-size:18px;font-weight:750;}
+.tc{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:18px 20px;margin-top:14px;box-shadow:0 6px 20px rgba(16,40,70,.04);}
+.tc .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.tid{font-size:12px;font-weight:800;letter-spacing:.05em;color:#fff;background:var(--blue);padding:3px 9px;border-radius:6px;}
+.badge{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:5px;}
+.badge.pos{color:var(--blue);border:1px solid color-mix(in srgb,var(--blue) 30%,transparent);background:color-mix(in srgb,var(--blue) 9%,transparent);}
+.badge.neg{color:var(--amber);border:1px solid color-mix(in srgb,var(--amber) 32%,transparent);background:color-mix(in srgb,var(--amber) 10%,transparent);}
+.res{font-size:11px;font-weight:800;letter-spacing:.05em;padding:3px 8px;border-radius:5px;margin-left:auto;}
+.res.pass{color:var(--teal);background:color-mix(in srgb,var(--teal) 12%,transparent);}
+.res.fail{color:var(--red);background:color-mix(in srgb,var(--red) 12%,transparent);}
+.tc h4{margin:10px 0 0;font-size:15.5px;color:var(--navy);font-weight:700;}
+.tc .grid{margin-top:10px;display:grid;grid-template-columns:120px 1fr;gap:6px 16px;font-size:14px;}
+.tc .grid .lab{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);padding-top:2px;}
+.tc .grid .val{color:var(--ink);}
+.tc ol{margin:0;padding-left:18px;color:var(--muted);} .tc ol li{margin:2px 0;}
+.foot{color:var(--faint);font-size:12.5px;text-align:center;margin-top:36px;}
+@media(max-width:640px){.meta{grid-template-columns:1fr 1fr;}.tc .grid{grid-template-columns:1fr;}}
+</style>
+<div class="wrap">
+  <header class="head">
+    <div class="eyebrow">User Acceptance Testing</div>
+    <h1>EpyScenario — Pertussis &amp; Intervention Planner UAT Guide</h1>
+    <p class="lead">Step-by-step acceptance tests for the pertussis model, the contact-intervention planner, and the vaccination planner. Use this guide with the accompanying tracking sheet (record Pass/Fail per test) and evidence document (before/after screenshots).</p>
+    <div class="meta">
+      <div><div class="k">Version</div><div class="v">1.0</div></div>
+      <div><div class="k">Application</div><div class="v">EpyScenario (local, SOAR)</div></div>
+      <div><div class="k">URL</div><div class="v">http://localhost:8501</div></div>
+      <div><div class="k">Scope</div><div class="v">Pertussis · Interventions · Vaccination</div></div>
+      <div><div class="k">Tests</div><div class="v">19 (16 positive · 3 negative)</div></div>
+      <div><div class="k">Reference run</div><div class="v">19 pass · 0 fail</div></div>
+    </div>
+    <div class="pills"><span class="pill pass">19 Passed (dry run)</span><span class="pill fail">0 Failed (dry run)</span></div>
+  </header>
+
+  <section>
+    <h2><span class="n">1</span>Purpose &amp; scope</h2>
+    <p>This UAT validates the pertussis-specific functionality of EpyScenario and the contact-intervention planner from the user's perspective — confirming each capability behaves as specified before sign-off. It covers positive cases (the feature works as intended) and negative cases (invalid input is rejected safely).</p>
+  </section>
+
+  <section>
+    <h2><span class="n">2</span>Environment &amp; prerequisites</h2>
+    <ol class="big">
+      <li><b>Launch the application.</b> In the project folder run <code>./run_dashboard.ps1</code>, then open <b>http://localhost:8501</b>. The launcher restarts the app automatically if it exits.</li>
+      <li><b>Use a fresh browser session</b> for a clean starting state. If a run has locked the workspace, click <b>Start new session</b> to change model/geography.</li>
+      <li><b>Recommended test data:</b> Model = <b>SEIRS (Pertussis)</b>; Geography = a <b>Lane County, Oregon</b> entry.</li>
+      <li>If a page looks stale after a restart, hard-refresh with <b>Ctrl+Shift+R</b>.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2><span class="n">3</span>How to run a test</h2>
+    <ol class="big">
+      <li>Read the <b>Preconditions</b>, then perform the <b>Steps</b> in order.</li>
+      <li>Compare what you observe to the <b>Expected</b> result.</li>
+      <li>Record <b>Pass</b> or <b>Fail</b> in the tracking sheet, with a one-line <b>Actual result</b>.</li>
+      <li>Capture a <b>before</b> and <b>after</b> screenshot for evidence (Windows: <b>Win+Shift+S</b>).</li>
+      <li>For a <b>Fail</b>, note the severity and any error text shown.</li>
+    </ol>
+    <div class="note"><b>Reference results.</b> Each test below shows the result from an automated dry run. Treat these as a baseline — the UAT team should independently re-verify and record their own Pass/Fail. One known finding (<b>I-04</b>) is documented in the tracking sheet.</div>
+  </section>
+
+  <section>
+    <h2><span class="n">4</span>Test cases</h2>
+    <p class="lead" style="margin-top:6px">Grouped by area. Each has a stable ID used across the guide, tracking sheet, and evidence document.</p>
+    <div class="area-h"><h3>Pertussis Model</h3></div>
+    <div class="tc">
+      <div class="top"><span class="tid">P-01</span>
+        <span class="badge pos">Positive</span>
+        <span class="res pass">Ref result: Pass</span></div>
+      <h4>Select the pertussis model activates the partial-immunity structure</h4>
+      <div class="grid">
+        <div class="lab">Preconditions</div><div class="val">App open on the Dashboard.</div>
+        <div class="lab">Steps</div><div class="val"><ol><li>Open the Model dropdown.</li><li>Select 'SEIRS (Pertussis)'.</li></ol></div>
+        <div class="lab">Expected</div><div class="val">Model switches to pertussis; the pertussis-only 'Observed data &amp; calibration' panel becomes available.</div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="top"><span class="tid">P-02</span>
+        <span class="badge pos">Positive</span>
+        <span class="res pass">Ref result: Pass</span></div>
+      <h4>Model-parameters panel exposes all pertussis parameters</h4>
+      <div class="grid">
+        <div class="lab">Preconditions</div><div class="val">Pertussis model selected.</div>
+        <div class="lab">Steps</div><div class="val"><ol><li>Expand 'Model parameters'.</li></ol></div>
+        <div class="lab">Expected</div><div class="val">R0, incubation, naive &amp; partial infectious periods, sigma, delta, three waning terms (omega1/2/3) and seasonality are all shown.</div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="top"><span class="tid">P-03</span>
+        <span class="badge pos">Positive</span>
+        <span class="res pass">Ref result: Pass</span></div>
+      <h4>Initial-conditions expose partial-track split and coverage profile</h4>
+      <div class="grid">
+        <div class="lab">Preconditions</div><div class="val">Pertussis model selected.</div>
+        <div class="lab">Steps</div><div class="val"><ol><li>Expand 'Initial conditions'.</li></ol></div>
+        <div class="lab">Expected</div><div class="val">Controls for infections-in-partial-track, Sp share of the immune pool, and a saved coverage-profile selector are present.</div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="top"><span class="tid">P-04</span>
+        <span class="badge pos">Positive</span>
+        <span class="res pass">Ref result: Pass</span></div>
+      <h4>Baseline scenario runs and produces trajectories</h4>
+      <div class="grid">
+        <div class="lab">Preconditions</div><div class="val">Pertussis model + a geography selected.</div>
+        <div class="lab">Steps</div><div class="val"><ol><li>Click Run.</li><li>Wait for results.</li></ol></div>
+        <div class="lab">Expected</div><div class="val">Result tabs appear and the Trajectories chart shows a non-zero infection curve.</div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="top"><span class="tid">P-05</span>
+        <span class="badge pos">Positive</span>
+        <span class="res pass">Ref result: Pass</span></div>
+      <h4>Partial-track infectious compartment (Ip) is available</h4>
+      <div class="grid">
+        <div class="lab">Preconditions</div><div class="val">A run has completed.</div>
+        <div class="lab">Steps</div><div class="val"><ol><li>On Trajectories, set Compartment to 'Ip'.</li></ol></div>
+        <div class="lab">Expected</div><div class="val">The partial-track infectious (Ip) curve is displayed.</div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="top"><span class="tid">P-06</span>
+        <span class="badge pos">Positive</span>
+        <span class="res pass">Ref result: Pass</span></div>
+      <h4>Summary metrics are computed</h4>
+      <div class="grid">
+        <div class="lab">Preconditions</div><div class="val">A run has completed.</div>
+        <div class="lab">Steps</div><div class="val"><ol><li>Open the 'Summary metrics' tab.</li></ol></div>
+        <div class="lab">Expected</div><div class="val">Attack rate, peak prevalence and related metrics are shown by age band.</div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="top"><span class="tid">P-07</span>
+        <span class="badge pos">Positive</span>
+        <span class="res pass">Ref result: Pass</span></div>
+      <h4>DTaP/Tdap saved campaign set loads into the scenario</h4>
+      <div class="grid">
+        <div class="lab">Preconditions</div><div class="val">Pertussis model selected.</div>
+        <div class="lab">Steps</div><div class="val"><ol><li>Expand 'Vaccination campaigns'.</li><li>Select the 'DTaP/Tdap (CDC)' set.</li><li>Click 'Load into scenario'.</li></ol></div>
+        <div class="lab">Expected</div><div class="val">Three DTaP/Tdap campaign lines are loaded into the scenario.</div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="top"><span class="tid">P-08</span>
+        <span class="badge pos">Positive</span>
+        <span class="res pass">Ref result: Pass</span></div>
+      <h4>Observed-data overlay produces an Observed-vs-modeled comparison</h4>
+      <div class="grid">
+        <div class="lab">Preconditions</div><div class="val">Lane County observed dataset selected in Overlay mode; a run has completed.</div>
+        <div class="lab">Steps</div><div class="val"><ol><li>Open the 'Observed vs modeled' tab.</li></ol></div>
+        <div class="lab">Expected</div><div class="val">Observed vs modeled vaccinated-share metrics and comparison charts are displayed.</div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="top"><span class="tid">P-09</span>
+        <span class="badge pos">Positive</span>
+        <span class="res pass">Ref result: Pass</span></div>
+      <h4>Contacts-by-setting age-mixing view renders</h4>
+      <div class="grid">
+        <div class="lab">Preconditions</div><div class="val">A run has completed.</div>
+        <div class="lab">Steps</div><div class="val"><ol><li>Open the 'Population' tab.</li><li>Choose 'Contacts by setting'.</li></ol></div>
+        <div class="lab">Expected</div><div class="val">A per-age-band breakdown of contacts across home/school/work/community is shown.</div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="top"><span class="tid">P-10</span>
+        <span class="badge neg">Negative</span>
+        <span class="res pass">Ref result: Pass</span></div>
+      <h4>Initial infected + background immunity over 100% is rejected</h4>
+      <div class="grid">
+        <div class="lab">Preconditions</div><div class="val">'Initial conditions' expanded.</div>
+        <div class="lab">Steps</div><div class="val"><ol><li>Set Initial infected to 60%.</li><li>Set Background immunity to 60%.</li></ol></div>
+        <div class="lab">Expected</div><div class="val">A validation error states that initial infected + background immunity must be &lt;= 100%.</div>
+      </div>
+    </div><div class="area-h"><h3>Intervention Planner</h3></div>
+    <div class="tc">
+      <div class="top"><span class="tid">I-01</span>
+        <span class="badge pos">Positive</span>
+        <span class="res pass">Ref result: Pass</span></div>
+      <h4>Contact-intervention form is available</h4>
+      <div class="grid">
+        <div class="lab">Preconditions</div><div class="val">Pertussis model selected.</div>
+        <div class="lab">Steps</div><div class="val"><ol><li>Expand 'Contact interventions'.</li></ol></div>
+        <div class="lab">Expected</div><div class="val">Layer, Start day, End day, Reduction (%) controls and an Add button are present.</div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="top"><span class="tid">I-02</span>
+        <span class="badge pos">Positive</span>
+        <span class="res pass">Ref result: Pass</span></div>
+      <h4>Add a school closure (50%) to the plan</h4>
+      <div class="grid">
+        <div class="lab">Preconditions</div><div class="val">'Contact interventions' expanded.</div>
+        <div class="lab">Steps</div><div class="val"><ol><li>Set Layer to 'school'.</li><li>Set Reduction to ~50%.</li><li>Click Add.</li></ol></div>
+        <div class="lab">Expected</div><div class="val">A 'school - 50% - day 0 -&gt; 250' entry appears under 'Added contact interventions'.</div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="top"><span class="tid">I-03</span>
+        <span class="badge pos">Positive</span>
+        <span class="res pass">Ref result: Pass</span></div>
+      <h4>Add an all-layers intervention</h4>
+      <div class="grid">
+        <div class="lab">Preconditions</div><div class="val">'Contact interventions' expanded.</div>
+        <div class="lab">Steps</div><div class="val"><ol><li>Set Layer to 'all'.</li><li>Click Add.</li></ol></div>
+        <div class="lab">Expected</div><div class="val">An 'all - ... ' entry is added to the interventions list.</div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="top"><span class="tid">I-04</span>
+        <span class="badge pos">Positive</span>
+        <span class="res pass">Ref result: Pass</span></div>
+      <h4>Remove an intervention</h4>
+      <div class="grid">
+        <div class="lab">Preconditions</div><div class="val">At least one intervention exists.</div>
+        <div class="lab">Steps</div><div class="val"><ol><li>Click 'Remove' on an intervention.</li></ol></div>
+        <div class="lab">Expected</div><div class="val">The intervention is removed and the list updates.</div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="top"><span class="tid">I-05</span>
+        <span class="badge pos">Positive</span>
+        <span class="res pass">Ref result: Pass</span></div>
+      <h4>A scenario with an intervention runs and reflects the reduction</h4>
+      <div class="grid">
+        <div class="lab">Preconditions</div><div class="val">An intervention added; pertussis run.</div>
+        <div class="lab">Steps</div><div class="val"><ol><li>Add a school closure.</li><li>Click Run.</li><li>Open the 'Contact Interventions' tab.</li></ol></div>
+        <div class="lab">Expected</div><div class="val">The run completes and the Contact Interventions tab shows the contact reduction over time.</div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="top"><span class="tid">I-06</span>
+        <span class="badge neg">Negative</span>
+        <span class="res pass">Ref result: Pass</span></div>
+      <h4>End day earlier than start day is rejected</h4>
+      <div class="grid">
+        <div class="lab">Preconditions</div><div class="val">'Contact interventions' expanded.</div>
+        <div class="lab">Steps</div><div class="val"><ol><li>Set Start day to 50.</li><li>Set End day to 10.</li><li>Click Add.</li></ol></div>
+        <div class="lab">Expected</div><div class="val">A warning states that End day must be greater than or equal to start day; no entry is added.</div>
+      </div>
+    </div><div class="area-h"><h3>Vaccination Planner</h3></div>
+    <div class="tc">
+      <div class="top"><span class="tid">V-01</span>
+        <span class="badge pos">Positive</span>
+        <span class="res pass">Ref result: Pass</span></div>
+      <h4>Planner grid is pre-filled with the DTaP/Tdap schedule</h4>
+      <div class="grid">
+        <div class="lab">Preconditions</div><div class="val">On the Vaccination Planner page.</div>
+        <div class="lab">Steps</div><div class="val"><ol><li>Open the Vaccination Planner page.</li></ol></div>
+        <div class="lab">Expected</div><div class="val">The age-stratified grid is pre-filled with DTaP/Tdap coverage (0-4: 92%, 5-19: 90%, adults ~7%).</div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="top"><span class="tid">V-02</span>
+        <span class="badge pos">Positive</span>
+        <span class="res pass">Ref result: Pass</span></div>
+      <h4>A coverage profile can be saved and persists</h4>
+      <div class="grid">
+        <div class="lab">Preconditions</div><div class="val">On the Vaccination Planner page, section 2.</div>
+        <div class="lab">Steps</div><div class="val"><ol><li>Enter a profile name.</li><li>Click 'Save profile'.</li></ol></div>
+        <div class="lab">Expected</div><div class="val">A confirmation states the profile was saved and will persist between sessions.</div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="top"><span class="tid">V-03</span>
+        <span class="badge neg">Negative</span>
+        <span class="res pass">Ref result: Pass</span></div>
+      <h4>Saving a coverage profile with an empty name is rejected</h4>
+      <div class="grid">
+        <div class="lab">Preconditions</div><div class="val">On the Vaccination Planner page, section 2.</div>
+        <div class="lab">Steps</div><div class="val"><ol><li>Clear the profile name.</li><li>Click 'Save profile'.</li></ol></div>
+        <div class="lab">Expected</div><div class="val">A warning states that a profile name is required; nothing is saved.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">5</span>Sign-off</h2>
+    <div class="note">On completion, confirm the pass/fail totals in the tracking sheet, attach the evidence document, and record tester name, date, and any defects raised. Acceptance criterion: all positive cases pass and all negative cases correctly reject invalid input; any failures are triaged with severity and an owner.</div>
+  </section>
+
+  <p class="foot">EpyScenario platform (EpiStorm / ISI Foundation) · pertussis extension by SOAR International Responder Systems · UAT Guide v1.0 · 2026-08-14</p>
+</div>

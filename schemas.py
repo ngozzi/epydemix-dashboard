@@ -170,6 +170,22 @@ MODEL_PARAM_SCHEMAS = {
             "step": 1.0,
             "default": 15.0,
         },
+        # Vaccine-derived protection decays too: without this, an individual
+        # vaccinated into Sp stays at reduced susceptibility delta forever
+        # unless infected, since Sp's only other exit is Sp -> Ep. DTaP
+        # protection wanes materially within 5-10 years of the primary series,
+        # which is the documented driver of adolescent resurgence and the
+        # rationale for the 11-year Tdap booster. Set to the max (50 y) to
+        # approximate the previous no-vaccine-waning behaviour.
+        {
+            "key": "waning_vaccine_to_susceptible_years",
+            "label": r"Waning vaccine $S_p\rightarrow S$ ($\omega_3$, years)",
+            "type": "float",
+            "min": 1.0,
+            "max": 50.0,
+            "step": 1.0,
+            "default": 10.0,
+        },
         {
             "key": "seasonality_peak_day",
             "label": "Seasonality peak day (day of the year)",
